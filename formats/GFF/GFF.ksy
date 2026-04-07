@@ -5,7 +5,8 @@ meta:
   endian: le
   file-extension: gff
   imports:
-    - ../common/bioware_common
+    # Path must match formats/Common/BioWare_Common.ksy (case-sensitive on Linux)
+    - ../Common/BioWare_Common
   xref:
     kotor_js: https://github.com/KobaltBlu/KotOR.js/blob/master/src/resource/GFFObject.ts
     kotor_net: https://github.com/KotOR-Community-Patches/Kotor.NET/tree/master/Kotor.NET/Formats/KotorGFF/
