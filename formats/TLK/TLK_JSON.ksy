@@ -6,6 +6,8 @@ meta:
   file-extension: tlk.json
   encoding: UTF-8
   xref:
+    ghidra_odyssey_k1:
+      note: "Tooling/JSON interchange for TLK; k1_win_gog_swkotor.exe reads binary .tlk (see TLK.ksy)."
     pykotor: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/tlk/
     pykotor_wiki_tlk: https://github.com/OldRepublicDevs/PyKotor/wiki/TLK-File-Format.md
 doc: |
