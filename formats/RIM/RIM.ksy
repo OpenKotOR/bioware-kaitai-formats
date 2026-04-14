@@ -5,6 +5,8 @@ meta:
   endian: le
   file-extension: rim
   xref:
+    ghidra_odyssey_k1:
+      note: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: RIM module templates are loaded through the same Aurora resource stack as ERF (implicit 120-byte header+padding behavior is KotOR-specific; keep aligned with PyKotor)."
     pykotor: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/rim/
     reone: https://github.com/seedhartha/reone/blob/master/src/libs/resource/format/rimreader.cpp
     xoreos: https://github.com/xoreos/xoreos/blob/master/src/aurora/rimfile.cpp
