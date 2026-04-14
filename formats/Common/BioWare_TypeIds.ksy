@@ -3,6 +3,10 @@ meta:
   title: BioWare Type ID Enums (xoreos FileType + PyKotor ResourceType)
   license: MIT
   xref:
+    ghidra_odyssey_k1:
+      note: |
+        Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: archive entries use ResourceType (see CKeyTableEntry.type);
+        numeric IDs align with xoreos_file_type_id / PyKotor ResourceType tables in this file.
     xoreos_types: https://github.com/xoreos/xoreos/blob/master/src/aurora/types.h
     pykotor_types: https://github.com/OldRepublicDevs/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/type.py
 doc: |
