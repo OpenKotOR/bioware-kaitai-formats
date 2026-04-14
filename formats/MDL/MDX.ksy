@@ -5,6 +5,8 @@ meta:
   endian: le
   file-extension: mdx
   xref:
+    ghidra_odyssey_k1:
+      note: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: MDX vertex streams pair with MDL; wire format per PyKotor wiki."
     pykotor: https://github.com/OldRepublicDevs/PyKotor/wiki/MDL-MDX-File-Format.md
 doc: |
   MDX (Model Extension) files contain vertex data for MDL models. MDX files work in tandem
