@@ -5,6 +5,8 @@ meta:
   endian: le
   file-extension: da2s
   xref:
+    ghidra_odyssey_k1:
+      note: "Dragon Age 2 save format (DragonAge2.exe in Odyssey), not KotOR k1_win_gog_swkotor.exe."
     runtime: src/Andastra/Runtime/Games/Eclipse/DragonAge2/Save/DragonAge2SaveSerializer.cs
 doc: |
   DA2S (Dragon Age 2 Save) files are binary save game files used by the Eclipse Engine
