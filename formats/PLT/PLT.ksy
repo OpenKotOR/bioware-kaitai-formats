@@ -5,6 +5,8 @@ meta:
   endian: le
   file-extension: plt
   xref:
+    ghidra_odyssey_k1:
+      note: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: PLT type exists in Aurora tables but KotOR does not ship NWN-style PLT body usage (see doc)."
     pykotor_wiki_plt: https://github.com/OldRepublicDevs/PyKotor/wiki/PLT-File-Format.md
     xoreos_docs_plt: https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/plt.html
     xoreos: https://github.com/xoreos/xoreos/blob/master/src/graphics/aurora/pltfile.cpp
