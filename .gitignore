@@ -90,3 +90,4 @@ src/**/pykotor_generated/
 !*.php
 .pytest_cache/
 pytest.log
+.mypy_cache/
