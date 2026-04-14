@@ -15,11 +15,11 @@ namespace Kaitai
     /// - Standard RIM: Basic module template files
     /// - Extension RIM: Files ending in 'x' (e.g., module001x.rim) that extend other RIMs
     /// 
-    /// Binary Format:
-    /// - Header (20 bytes): File type, version, resource count, offset to resource table
-    /// - Extended Header (100 bytes): Reserved padding (total header = 120 bytes)
-    /// - Resource Entry Table (32 bytes per entry): ResRef, type, ID, offset, size
-    /// - Resource Data (variable size): Raw binary data for each resource
+    /// Binary Format (KotOR / PyKotor):
+    /// - Fixed header (24 bytes): File type, version, reserved, resource count, offset to key table, offset to resources
+    /// - Padding to key table (96 bytes when offsets are implicit): total 120 bytes before the key table
+    /// - Key / resource entry table (32 bytes per entry): ResRef, type, ID, offset, size
+    /// - Resource data at per-entry offsets (variable size, with engine/tool-specific padding between resources)
     /// 
     /// References:
     /// - https://github.com/OldRepublicDevs/PyKotor/wiki/RIM-File-Format.md
@@ -349,7 +349,12 @@ namespace Kaitai
         private void _read()
         {
             _header = new RimHeader(m_io, this, m_root);
-            _extendedHeader = new RimExtendedHeader(m_io, this, m_root);
+            if (Header.OffsetToResourceTable == 0) {
+                _gapBeforeKeyTableImplicit = m_io.ReadBytes(96);
+            }
+            if (Header.OffsetToResourceTable != 0) {
+                _gapBeforeKeyTableExplicit = m_io.ReadBytes(Header.OffsetToResourceTable - 24);
+            }
             if (Header.ResourceCount > 0) {
                 _resourceEntryTable = new ResourceEntryTable(m_io, this, m_root);
             }
@@ -374,7 +379,7 @@ namespace Kaitai
                 _resourceType = ((Rim.XoreosFileTypeId) m_io.ReadU4le());
                 _resourceId = m_io.ReadU4le();
                 _offsetToData = m_io.ReadU4le();
-                _resourceSize = m_io.ReadU4le();
+                _numData = m_io.ReadU4le();
             }
             private bool f_data;
             private List<byte> _data;
@@ -392,7 +397,7 @@ namespace Kaitai
                     long _pos = m_io.Pos;
                     m_io.Seek(OffsetToData);
                     _data = new List<byte>();
-                    for (var i = 0; i < ResourceSize; i++)
+                    for (var i = 0; i < NumData; i++)
                     {
                         _data.Add(m_io.ReadU1());
                     }
@@ -404,7 +409,7 @@ namespace Kaitai
             private XoreosFileTypeId _resourceType;
             private uint _resourceId;
             private uint _offsetToData;
-            private uint _resourceSize;
+            private uint _numData;
             private Rim m_root;
             private Rim.ResourceEntryTable m_parent;
 
@@ -436,10 +441,10 @@ namespace Kaitai
             public uint OffsetToData { get { return _offsetToData; } }
 
             /// <summary>
-            /// Size of resource data in bytes.
+            /// Size of resource data in bytes (repeat count for raw `data` bytes).
             /// Uncompressed size of the resource.
             /// </summary>
-            public uint ResourceSize { get { return _resourceSize; } }
+            public uint NumData { get { return _numData; } }
             public Rim M_Root { get { return m_root; } }
             public Rim.ResourceEntryTable M_Parent { get { return m_parent; } }
         }
@@ -475,39 +480,6 @@ namespace Kaitai
             public Rim M_Root { get { return m_root; } }
             public Rim M_Parent { get { return m_parent; } }
         }
-        public partial class RimExtendedHeader : KaitaiStruct
-        {
-            public static RimExtendedHeader FromFile(string fileName)
-            {
-                return new RimExtendedHeader(new KaitaiStream(fileName));
-            }
-
-            public RimExtendedHeader(KaitaiStream p__io, Rim p__parent = null, Rim p__root = null) : base(p__io)
-            {
-                m_parent = p__parent;
-                m_root = p__root;
-                _read();
-            }
-            private void _read()
-            {
-                _reservedPadding = System.Text.Encoding.GetEncoding("ASCII").GetString(m_io.ReadBytes(100));
-            }
-            private string _reservedPadding;
-            private Rim m_root;
-            private Rim m_parent;
-
-            /// <summary>
-            /// Reserved padding bytes (typically all zeros).
-            /// Total header size is 120 bytes:
-            /// header (20) + extended_header (100) = 120 bytes
-            /// 
-            /// In extension RIMs (files ending in 'x'), byte 0x14 (offset 20 in extended header)
-            /// may contain an IsExtension flag, but this is not consistently used.
-            /// </summary>
-            public string ReservedPadding { get { return _reservedPadding; } }
-            public Rim M_Root { get { return m_root; } }
-            public Rim M_Parent { get { return m_parent; } }
-        }
         public partial class RimHeader : KaitaiStruct
         {
             public static RimHeader FromFile(string fileName)
@@ -537,6 +509,7 @@ namespace Kaitai
                 _reserved = m_io.ReadU4le();
                 _resourceCount = m_io.ReadU4le();
                 _offsetToResourceTable = m_io.ReadU4le();
+                _offsetToResources = m_io.ReadU4le();
             }
             private bool f_hasResources;
             private bool _hasResources;
@@ -560,6 +533,7 @@ namespace Kaitai
             private uint _reserved;
             private uint _resourceCount;
             private uint _offsetToResourceTable;
+            private uint _offsetToResources;
             private Rim m_root;
             private Rim m_parent;
 
@@ -589,29 +563,43 @@ namespace Kaitai
             public uint ResourceCount { get { return _resourceCount; } }
 
             /// <summary>
-            /// Byte offset to the resource entry table from the beginning of the file.
-            /// Typically 120 (right after header + extended header) if resources are present.
-            /// Points to the start of the resource_entry_table.
+            /// Byte offset to the key / resource entry table from the beginning of the file.
+            /// 0 means implicit offset 120 (24-byte header + 96-byte padding), matching PyKotor and vanilla KotOR.
+            /// When non-zero, this offset is used directly (commonly 120).
             /// </summary>
             public uint OffsetToResourceTable { get { return _offsetToResourceTable; } }
+
+            /// <summary>
+            /// Optional offset to resource data section. Vanilla module RIMs often store 0 here (offsets are
+            /// taken only from per-entry offset_to_data). PyKotor writes 0 when serializing.
+            /// </summary>
+            public uint OffsetToResources { get { return _offsetToResources; } }
             public Rim M_Root { get { return m_root; } }
             public Rim M_Parent { get { return m_parent; } }
         }
         private RimHeader _header;
-        private RimExtendedHeader _extendedHeader;
+        private byte[] _gapBeforeKeyTableImplicit;
+        private byte[] _gapBeforeKeyTableExplicit;
         private ResourceEntryTable _resourceEntryTable;
         private Rim m_root;
         private KaitaiStruct m_parent;
 
         /// <summary>
-        /// RIM file header (20 bytes)
+        /// RIM file header (24 bytes) plus padding to the key table (PyKotor total 120 bytes when implicit)
         /// </summary>
         public RimHeader Header { get { return _header; } }
 
         /// <summary>
-        /// Extended header padding (100 bytes, total header = 120 bytes)
+        /// When offset_to_resource_table is 0, the engine treats the key table as starting at byte 120.
+        /// After the 24-byte header, skip 96 bytes of padding (24 + 96 = 120).
         /// </summary>
-        public RimExtendedHeader ExtendedHeader { get { return _extendedHeader; } }
+        public byte[] GapBeforeKeyTableImplicit { get { return _gapBeforeKeyTableImplicit; } }
+
+        /// <summary>
+        /// When offset_to_resource_table is non-zero, skip until that byte offset (must be &gt;= 24).
+        /// Vanilla files often store 120 here, which yields the same 96 bytes of padding as the implicit case.
+        /// </summary>
+        public byte[] GapBeforeKeyTableExplicit { get { return _gapBeforeKeyTableExplicit; } }
 
         /// <summary>
         /// Array of resource entries mapping ResRefs to resource data
