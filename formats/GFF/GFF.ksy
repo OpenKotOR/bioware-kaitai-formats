@@ -7,6 +7,10 @@ meta:
   imports:
     - ../common/bioware_common
   xref:
+    ghidra_odyssey_k1:
+      note: |
+        Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: GFFHeaderInfo (56B) matches gff_header field order;
+        GFFStructData and GFFFieldData (12B each) match struct_entry and field_entry (engine CResGFFStruct / CResGFFField).
     kotor_js: https://github.com/KobaltBlu/KotOR.js/blob/master/src/resource/GFFObject.ts
     kotor_net: https://github.com/KotOR-Community-Patches/Kotor.NET/tree/master/Kotor.NET/Formats/KotorGFF/
     kotor_net2: https://github.com/NickHugi/Kotor.NET/tree/master/Kotor.NET/Formats/KotorGFF/  # - .NET GFF reader/writer
@@ -35,7 +39,7 @@ doc: |
   - File Header (56 bytes): File type signature (FourCC), version, counts, and offsets to all
     data tables (structs, fields, labels, field_data, field_indices, list_indices)
   - Label Array: Array of 16-byte null-padded field name labels
-  - Struct Array: Array of struct entries (12 bytes each) - struct_id, data_or_offset, field_count
+  - Struct Array: Array of struct entries (12 bytes each) - struct_id (uint32; 0xFFFFFFFF = generic per engine), data_or_offset, field_count
   - Field Array: Array of field entries (12 bytes each) - field_type, label_index, data_or_offset
   - Field Data: Storage area for complex field types (strings, binary, vectors, etc.)
   - Field Indices Array: Array of field index arrays (used when structs have multiple fields)
@@ -219,10 +223,10 @@ types:
   struct_entry:
     seq:
       - id: struct_id
-        type: s4
+        type: u4
         doc: |
-          Structure type identifier. Often 0xFFFFFFFF (-1) for generic structs.
-          Used to identify struct types in schema-aware parsers.
+          Structure type identifier (GFFStructData.id in k1_win_gog_swkotor.exe / Odyssey Ghidra).
+          0xFFFFFFFF is the conventional "generic" / unset id in KotOR data; other values are schema-specific.
 
       - id: data_or_offset
         type: u4
