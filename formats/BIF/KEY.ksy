@@ -5,6 +5,10 @@ meta:
   endian: le
   file-extension: key
   xref:
+    ghidra_odyssey_k1:
+      note: |
+        Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: runtime indexing uses CExoKeyTable / CKeyTableEntry (28B, ResRef + pointers + ResourceType);
+        on-disk .key layout here remains the Aurora KEY V1 wire format (see PyKotor wiki).
     pykotor: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/key/
     reone: https://github.com/seedhartha/reone/blob/master/src/libs/resource/format/keyreader.cpp
     xoreos: https://github.com/xoreos/xoreos/blob/master/src/aurora/keyfile.cpp
