@@ -5,6 +5,8 @@ meta:
   endian: le
   file-extension: wav
   xref:
+    ghidra_odyssey_k1:
+      note: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: WAV/VOX resources use KotOR RIFF + optional 470-byte SFX prefix per PyKotor wiki."
     pykotor: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/wav/
     reone: https://github.com/seedhartha/reone/blob/master/src/libs/audio/format/wavreader.cpp
     xoreos: https://github.com/xoreos/xoreos/blob/master/src/sound/decoders/wave.cpp
