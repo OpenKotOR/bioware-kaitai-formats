@@ -6,6 +6,8 @@ meta:
   file-extension: 2da.csv
   encoding: UTF-8
   xref:
+    ghidra_odyssey_k1:
+      note: "Tooling/CSV interchange for TwoDA; game loads .2da wire format (see TwoDA.ksy)."
     pykotor: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/twoda/
     pykotor_wiki_twoda: https://github.com/OldRepublicDevs/PyKotor/wiki/TwoDA-File-Format.md
 doc: |
