@@ -6,6 +6,8 @@ meta:
   file-extension: lip.xml
   encoding: UTF-8
   xref:
+    ghidra_odyssey_k1:
+      note: "Tooling/XML interchange for LIP; game loads binary LIP (see LIP.ksy)."
     pykotor_library_lip_binary: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/lip/lip.py
     pykotor_library_lip_xml: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/lip/io_lip_xml.py
     reone: https://github.com/seedhartha/reone/tree/master/src/libs/graphics/format/lipreader.cpp
