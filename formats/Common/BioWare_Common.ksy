@@ -4,6 +4,10 @@ meta:
   license: MIT
   endian: le
   xref:
+    ghidra_odyssey_k1:
+      note: |
+        Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: GFF field-data layouts here match engine consumption
+        (CExoLocString substrings, ResRef, CExoString-style length-prefixed strings in files).
     pykotor_ref: https://github.com/OldRepublicDevs/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/common/
     xoreos_tools: https://github.com/xoreos/xoreos-tools/blob/master/src/common/types.h
     reone: https://github.com/seedhartha/reone/blob/master/include/reone/resource/types.h
