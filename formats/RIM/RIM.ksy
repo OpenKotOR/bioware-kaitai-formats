@@ -150,10 +150,10 @@ types:
           Byte offset to resource data from the beginning of the file.
           Points to the actual binary data for this resource in resource_data_section.
       
-      - id: resource_size
+      - id: num_data
         type: u4
         doc: |
-          Size of resource data in bytes.
+          Size of resource data in bytes (repeat count for raw `data` bytes).
           Uncompressed size of the resource.
     
     instances:
@@ -161,7 +161,7 @@ types:
         type: u1
         pos: offset_to_data
         repeat: expr
-        repeat-expr: resource_size
+        repeat-expr: num_data
         doc: Raw binary data for this resource (read at specified offset)
 
 enums:
