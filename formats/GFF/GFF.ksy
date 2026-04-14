@@ -42,12 +42,15 @@ doc: |
   - List Indices Array: Array of list entry structures (count + struct indices)
 
   Field Types:
-  - Simple types (0-5, 8): Stored inline in data_or_offset (uint8, int8, uint16, int16, uint32,
-    int32, float)
+  - Simple types (0-5, 8, 18): Stored inline in data_or_offset (uint8, int8, uint16, int16, uint32,
+    int32, float, str_ref as TLK StrRef / uint32)
   - Complex types (6-7, 9-13, 16-17): Offset to field_data section (uint64, int64, double, string,
     resref, localized_string, binary, vector4, vector3)
   - Struct (14): Struct index stored inline (nested struct)
   - List (15): Offset to list_indices_array (list of structs)
+
+  StrRef (18) is a distinct field type from Int (5): same 4-byte inline width, indexes dialog.tlk
+  (see PyKotor wiki GFF-File-Format.md — GFF Data Types).
 
   Struct Access Pattern:
   1. Root struct is always at struct_array index 0
@@ -265,7 +268,7 @@ types:
         enum: gff_field_type
         doc: |
           Field data type (see gff_field_type enum):
-          - 0-5, 8: Simple types (stored inline in data_or_offset)
+          - 0-5, 8, 18: Simple types (stored inline in data_or_offset)
           - 6-7, 9-13, 16-17: Complex types (offset to field_data in data_or_offset)
           - 14: Struct (struct index in data_or_offset)
           - 15: List (offset to list_indices_array in data_or_offset)
@@ -278,7 +281,7 @@ types:
         type: u4
         doc: |
           Inline data (simple types) or offset/index (complex types):
-          - Simple types (0-5, 8): Value stored directly (1-4 bytes, sign/zero extended to 4 bytes)
+          - Simple types (0-5, 8, 18): Value stored directly (1-4 bytes, sign/zero extended to 4 bytes)
           - Complex types (6-7, 9-13, 16-17): Byte offset into field_data section (relative to field_data_offset)
           - Struct (14): Struct index (index into struct_array)
           - List (15): Byte offset into list_indices_array (relative to list_indices_offset)
@@ -291,7 +294,8 @@ types:
           field_type == gff_field_type::int16 or
           field_type == gff_field_type::uint32 or
           field_type == gff_field_type::int32 or
-          field_type == gff_field_type::single
+          field_type == gff_field_type::single or
+          field_type == gff_field_type::str_ref
         doc: True if field stores data inline (simple types)
       is_complex_type:
         value: |
@@ -439,7 +443,8 @@ types:
   resolved_field:
     doc: |
       A decoded field: includes resolved label string and decoded typed value.
-      Exactly one `value_*` instance (or one of `value_struct` / `list_*`) will be non-null.
+      Exactly one `value_*` instance (or one of `value_struct` / `list_*`) will be active for a
+      valid field_type; includes `value_str_ref` for TLK StrRef (type 18).
     params:
       - id: field_index
         type: u4
@@ -488,6 +493,13 @@ types:
         type: f4
         if: entry.field_type == gff_field_type::single
         pos: field_entry_pos + 8
+      value_str_ref:
+        type: u4
+        if: entry.field_type == gff_field_type::str_ref
+        pos: field_entry_pos + 8
+        doc: |
+          TLK string reference stored inline (type ID 18). Same width as int32; 0xFFFFFFFF means
+          no string / not set in many game files (see TLK StrRef conventions).
 
       # Complex field types (stored in field_data section, offset is entry.data_or_offset)
       value_uint64:
@@ -566,4 +578,9 @@ enums:
     15: list
     16: vector4
     17: vector3
+    18:
+      id: str_ref
+      doc: |
+        StrRef — inline TLK string reference (uint32). Used for player-visible text fields that
+        index dialog.tlk directly without a full CExoLocString wrapper (PyKotor wiki type 18).
 
