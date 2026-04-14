@@ -6,6 +6,8 @@ meta:
   file-extension: nss
   encoding: UTF-8
   xref:
+    ghidra_odyssey_k1:
+      note: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: NSS is tooling/source text compiled to NCS outside this binary wire spec."
     pykotor: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/ncs/
     pykotor_wiki_nss: https://github.com/OldRepublicDevs/PyKotor/wiki/NSS-File-Format.md
 doc: |
