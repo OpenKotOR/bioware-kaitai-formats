@@ -326,7 +326,7 @@ types:
         type: u4
         doc: Unknown field.
       
-      - id: component_count
+      - id: num_components
         type: s4
         doc: Number of component entries (can be negative).
       
@@ -341,11 +341,11 @@ types:
       - id: components
         type: s4
         repeat: expr
-        repeat-expr: component_count
-        if: component_count > 0
+        repeat-expr: num_components
+        if: num_components > 0
         doc: |
           Array of component indices.
-          Only present if component_count > 0.
+          Only present if num_components > 0.
   
   guid:
     seq:
