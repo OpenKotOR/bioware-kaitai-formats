@@ -16,61 +16,25 @@ class gff_t;
 #endif
 
 /**
- * GFF (Generic File Format) is BioWare's universal container format for structured game data.
- * It is used by many KotOR file types including UTC (creature), UTI (item), DLG (dialogue),
- * ARE (area), GIT (game instance template), IFO (module info), and many others.
+ * GFF (Generic File Format) is BioWare’s hierarchical binary container for structured game data (KotOR/TSL
+ * and other Aurora-family titles). **Normative community documentation:** OpenKotOR PyKotor wiki
+ * [GFF File Format](https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format) (binary layout, field types,
+ * struct/field/list access). Related: [Bioware Aurora GFF](https://github.com/OpenKotOR/PyKotor/wiki/Bioware-Aurora-Core-Formats#gff),
+ * [TSLPatcher GFFList](https://github.com/OpenKotOR/PyKotor/wiki/TSLPatcher-GFF-Syntax#gfflist-syntax).
  * 
- * Primary reverse-engineering anchor: Odyssey Ghidra program `/K1/k1_win_gog_swkotor.exe` exports the
- * on-disk record layouts `GFFHeaderInfo` (56 B), `GFFStructData` (12 B), `GFFFieldData` (12 B), and
- * the `GFFFieldTypes` enumeration. Runtime class `CResGFF` (ctors e.g. `0x004105a0`, `0x00410630`) holds
- * parsed tables in memory; accessors such as `CResGFF::GetField` (`0x00410990`) and `ReadField*` family
- * (`0x00411a60` BYTE, `0x00411c90` INT, etc.) consume those structures. This `.ksy` describes the file
- * bytes those parsers ultimately populate from (not the in-memory `CResGFF` layout).
+ * **PyKotor reference implementation:** [resource/formats/gff/](https://github.com/OpenKotOR/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/gff)
+ * ([io_gff.py](https://github.com/OpenKotOR/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/gff/io_gff.py),
+ * [gff_data.py](https://github.com/OpenKotOR/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/gff/gff_data.py)).
  * 
- * GFF uses a hierarchical structure with structs containing fields, which can be simple values,
- * nested structs, or lists of structs. The format supports version V3.2 (KotOR) and later
- * versions (V3.3, V4.0, V4.1) used in other BioWare games.
+ * **EXE/Ghidra (KotOR1):** On-disk record names and image addresses are **not** repeated here — they are cited
+ * on the specific `types` / `seq` / `enums` nodes they justify (e.g. `GFFHeaderInfo` field offsets under
+ * `gff_header`, `CResGFF::GetField` @ `0x00410990` next to `field_entry`, `GFFFieldTypes` values under
+ * `gff_field_type`). This file describes wire bytes; the game builds in-memory `CResGFF` views from them.
  * 
- * Binary Format Structure:
- * - File Header (56 bytes): File type signature (FourCC), version, counts, and offsets to all
- *   data tables (structs, fields, labels, field_data, field_indices, list_indices)
- * - Label Array: Array of 16-byte null-padded field name labels
- * - Struct Array: Array of struct entries (12 bytes each) - struct_id (uint32; 0xFFFFFFFF = generic per engine), data_or_offset, field_count
- * - Field Array: Array of field entries (12 bytes each) - field_type, label_index, data_or_offset
- * - Field Data: Storage area for complex field types (strings, binary, vectors, etc.)
- * - Field Indices Array: Array of field index arrays (used when structs have multiple fields)
- * - List Indices Arena: Byte blob (size = `list_indices_count`) containing packed list nodes (count + struct indices)
- * 
- * Field Types:
- * - Simple types (0-5, 8, 18): Stored inline in data_or_offset (uint8, int8, uint16, int16, uint32,
- *   int32, float, str_ref as TLK StrRef / uint32)
- * - Complex types (6-7, 9-13, 16-17): Offset to field_data section (uint64, int64, double, string,
- *   resref, localized_string, binary, vector4, vector3)
- * - Struct (14): Struct index stored inline (nested struct)
- * - List (15): Offset to list_indices_array (list of structs)
- * 
- * StrRef (18) is a distinct field type from Int (5): same 4-byte inline width, indexes dialog.tlk
- * (see PyKotor wiki GFF-File-Format.md — GFF Data Types).
- * 
- * Struct Access Pattern:
- * 1. Root struct is always at struct_array index 0
- * 2. If struct.field_count == 1: data_or_offset contains direct field index
- * 3. If struct.field_count > 1: data_or_offset contains offset into field_indices_array
- * 4. Use field_index to access field_array entry
- * 5. Use field.label_index to get field name from label_array
- * 6. Use field.data_or_offset based on field_type (inline, offset, struct index, list offset)
- * 
- * References:
- * - https://github.com/OldRepublicDevs/PyKotor/wiki/GFF-File-Format.md - Complete GFF format documentation
- * - https://github.com/OldRepublicDevs/PyKotor/wiki/Bioware-Aurora-GFF.md - Official BioWare Aurora GFF specification
- * - https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/itp.html - Tim Smith/Torlack's GFF/ITP documentation
- * - https://github.com/seedhartha/reone/blob/master/src/libs/resource/format/gffreader.cpp - Complete C++ GFF reader implementation
- * - https://github.com/xoreos/xoreos/blob/master/src/aurora/gff3file.cpp - Generic Aurora GFF implementation (shared format)
- * - https://github.com/KotOR-Community-Patches/KotOR.js/blob/master/src/resource/GFFObject.ts - TypeScript GFF parser
- * - https://github.com/KotOR-Community-Patches/KotOR-Unity/blob/master/Assets/Scripts/FileObjects/GFFObject.cs - C# Unity GFF loader
- * - https://github.com/KotOR-Community-Patches/Kotor.NET/tree/master/Kotor.NET/Formats/KotorGFF/ - .NET GFF reader/writer
- * - https://github.com/OldRepublicDevs/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/gff/io_gff.py - PyKotor binary reader/writer
- * - https://github.com/OldRepublicDevs/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/gff/gff_data.py - GFF data model
+ * Summary (see wiki [Binary Format](https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#binary-format)):
+ * - 56-byte header → offsets/counts for label, struct, field, field-data, field-indices, and list-indices arenas
+ * - 12-byte struct rows and 12-byte field rows; field types and inline vs field-data storage per [GFF Data Types](https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#gff-data-types)
+ * - Root struct index 0; single-field vs multi-field indexing: [Field Indices](https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#field-indices-multiple-element-map--multimap), [List Indices](https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#list-indices)
  */
 
 class gff_t : public kaitai::kstruct {
@@ -190,7 +154,7 @@ public:
          * Opaque span sized by `GFFHeaderInfo.field_data_count` @ +0x24; base @ +0x20.
          * Entries are addressed only through `GFFFieldData` complex-type offsets (not sequential).
          * Per-type layouts: see `resolved_field` value_* instances and `bioware_common` types (CExoString, ResRef, LocString, vectors, binary).
-         * Community: PyKotor `io_gff.py` / wiki “Field Data”; reone `gffreader.cpp`.
+         * Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#field-data
          */
         std::string raw_data() const { return m_raw_data; }
         gff_t* _root() const { return m__root; }
@@ -321,19 +285,16 @@ public:
     public:
 
         /**
-         * Field data type (see gff_field_type enum):
-         * - 0-5, 8, 18: Simple types (stored inline in data_or_offset)
-         * - 6-7, 9-13, 16-17: Complex types (offset to field_data in data_or_offset)
-         * - 14: Struct (struct index in data_or_offset)
-         * - 15: List (offset to list_indices_array in data_or_offset)
-         * Source: Odyssey Ghidra `GFFFieldData.field_type` @ +0x0, typed `GFFFieldTypes` in the same program.
-         * Runtime: `CResGFF::GetField` @ `0x00410990` indexes the field table with 12-byte stride; `ReadFieldBYTE`
-         * @ `0x00411a60` / `ReadFieldINT` @ `0x00411c90` dispatch on resolved field records after lookup.
+         * Field data type tag. Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#gff-data-types
+         * (ID → storage: inline vs `field_data` vs struct/list indirection).
+         * Inline: types 0–5, 8, 18; `field_data`: 6–7, 9–13, 16–17; struct index 14; list offset 15.
+         * Source: Ghidra `/K1/k1_win_gog_swkotor.exe` — `GFFFieldData.field_type` @ +0 (`GFFFieldTypes`).
+         * Runtime: `CResGFF::GetField` @ `0x00410990` (12-byte stride); `ReadFieldBYTE` @ `0x00411a60`, `ReadFieldINT` @ `0x00411c90`.
          */
         gff_field_type_t field_type() const { return m_field_type; }
 
         /**
-         * Index into label_array for field name.
+         * Index into the label table (×16 bytes from `label_offset`). Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#field-array
          * Source: Ghidra `GFFFieldData.label_index` @ +0x4 (ulong).
          */
         uint32_t label_index() const { return m_label_index; }
@@ -344,9 +305,8 @@ public:
          * - Complex types (6-7, 9-13, 16-17): Byte offset into field_data section (relative to field_data_offset)
          * - Struct (14): Struct index (index into struct_array)
          * - List (15): Byte offset into list_indices_array (relative to list_indices_offset)
-         * Source: Ghidra `GFFFieldData.data_or_data_offset` @ +0x8. Kaitai `resolved_field` reads narrow
-         * integers from this same 12-byte record at file offset `field_offset + index*12 + 8` for inline types
-         * (matches how `ReadField*` consumers use the resolved field payload width).
+         * Source: Ghidra `GFFFieldData.data_or_data_offset` @ +0x8.
+         * `resolved_field` reads narrow values at `field_offset + index*12 + 8` for inline types; wiki storage rules: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#gff-data-types
          */
         uint32_t data_or_offset() const { return m_data_or_offset; }
         gff_t* _root() const { return m__root; }
@@ -388,8 +348,8 @@ public:
     };
 
     /**
-     * Fixed 56-byte file header. Ghidra `/K1/k1_win_gog_swkotor.exe`: datatype `GFFHeaderInfo` (components listed per field below).
-     * Community mirror: PyKotor wiki `GFF-File-Format.md` header diagram; `io_gff.py` header read.
+     * 56-byte header: wiki [File Header](https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#file-header) table.
+     * Ghidra `/K1/k1_win_gog_swkotor.exe`: datatype `GFFHeaderInfo` — each `seq` field below names the matching column + offset.
      */
 
     class gff_header_t : public kaitai::kstruct {
@@ -426,92 +386,87 @@ public:
     public:
 
         /**
-         * File type signature (FourCC). Examples: "GFF ", "UTC ", "UTI ", "DLG ", "ARE ", etc.
-         * Must match a valid GFFContent enum value.
-         * Source: Odyssey Ghidra `/K1/k1_win_gog_swkotor.exe` datatype `GFFHeaderInfo.file_type` @ +0x0 (char[4]).
-         * See also: pykotor_wiki_gff_format (content FourCC vs container).
+         * File type signature (FourCC), e.g. `"UTC "`, `"DLG "`, `"ARE "`. Wiki `File Header` row “File Type”, offset 0x00.
+         * Source: Ghidra `GFFHeaderInfo.file_type` @ +0x0 (char[4]) on `/K1/k1_win_gog_swkotor.exe`.
          */
         std::string file_type() const { return m_file_type; }
 
         /**
-         * File format version. Must be "V3.2" for KotOR games.
-         * Later BioWare games use "V3.3", "V4.0", or "V4.1".
-         * Valid values: "V3.2" (KotOR), "V3.3", "V4.0", "V4.1" (other BioWare games)
-         * Source: Ghidra `GFFHeaderInfo.file_version` @ +0x4 (char[4]) on same program path as meta.xref.
+         * Format version; KotOR uses `"V3.2"`. Wiki `File Header` row “File Version”, offset 0x04.
+         * Source: Ghidra `GFFHeaderInfo.file_version` @ +0x4 (char[4]) on `/K1/k1_win_gog_swkotor.exe`.
          */
         std::string file_version() const { return m_file_version; }
 
         /**
-         * Byte offset to struct array from beginning of file.
+         * Byte offset to struct array. Wiki `File Header` row “Struct Array Offset”, offset 0x08.
          * Source: Ghidra `GFFHeaderInfo.struct_offset` @ +0x8 (ulong).
          */
         uint32_t struct_offset() const { return m_struct_offset; }
 
         /**
-         * Number of struct entries in struct array.
+         * Struct row count. Wiki `File Header` row “Struct Count”, offset 0x0C.
          * Source: Ghidra `GFFHeaderInfo.struct_count` @ +0xC (ulong).
          */
         uint32_t struct_count() const { return m_struct_count; }
 
         /**
-         * Byte offset to field array from beginning of file.
+         * Byte offset to field array. Wiki `File Header` row “Field Array Offset”, offset 0x10.
          * Source: Ghidra `GFFHeaderInfo.field_offset` @ +0x10 (ulong).
          */
         uint32_t field_offset() const { return m_field_offset; }
 
         /**
-         * Number of field entries in field array.
+         * Field row count. Wiki `File Header` row “Field Count”, offset 0x14.
          * Source: Ghidra `GFFHeaderInfo.field_count` @ +0x14 (ulong).
          */
         uint32_t field_count() const { return m_field_count; }
 
         /**
-         * Byte offset to label array from beginning of file.
+         * Byte offset to label array. Wiki `File Header` row “Label Array Offset”, offset 0x18.
          * Source: Ghidra `GFFHeaderInfo.label_offset` @ +0x18 (ulong).
          */
         uint32_t label_offset() const { return m_label_offset; }
 
         /**
-         * Number of labels in label array.
+         * Label slot count. Wiki `File Header` row “Label Count”, offset 0x1C.
          * Source: Ghidra `GFFHeaderInfo.label_count` @ +0x1C (ulong).
          */
         uint32_t label_count() const { return m_label_count; }
 
         /**
-         * Byte offset to field data section from beginning of file.
+         * Byte offset to field-data section. Wiki `File Header` row “Field Data Offset”, offset 0x20.
          * Source: Ghidra `GFFHeaderInfo.field_data_offset` @ +0x20 (ulong).
          */
         uint32_t field_data_offset() const { return m_field_data_offset; }
 
         /**
-         * Size of field data section in bytes.
+         * Field-data section size in bytes. Wiki `File Header` row “Field Data Count”, offset 0x24.
          * Source: Ghidra `GFFHeaderInfo.field_data_count` @ +0x24 (ulong).
          */
         uint32_t field_data_count() const { return m_field_data_count; }
 
         /**
-         * Byte offset to field indices array from beginning of file.
+         * Byte offset to field-indices stream. Wiki `File Header` row “Field Indices Offset”, offset 0x28.
          * Source: Ghidra `GFFHeaderInfo.field_indices_offset` @ +0x28 (ulong).
          */
         uint32_t field_indices_offset() const { return m_field_indices_offset; }
 
         /**
-         * Number of field indices (total count across all structs with multiple fields).
+         * Count of `u32` entries in the field-indices stream (MultiMap). Wiki `File Header` row “Field Indices Count”, offset 0x2C.
          * Source: Ghidra `GFFHeaderInfo.field_indices_count` @ +0x2C (ulong).
          */
         uint32_t field_indices_count() const { return m_field_indices_count; }
 
         /**
-         * Byte offset to list indices array from beginning of file.
+         * Byte offset to list-indices arena. Wiki `File Header` row “List Indices Offset”, offset 0x30.
          * Source: Ghidra `GFFHeaderInfo.list_indices_offset` @ +0x30 (ulong).
          */
         uint32_t list_indices_offset() const { return m_list_indices_offset; }
 
         /**
-         * Size in bytes of the list-indices arena (same semantics as `field_data_count`: byte length, not a node count).
-         * This `.ksy` reads it as `list_indices_array.raw_data` (`size: list_indices_count`).
+         * List-indices arena size in bytes (this `.ksy` uses it as `list_indices_array.raw_data` byte length).
+         * Wiki `File Header` row “List Indices Count”, offset 0x34 — note wiki table header wording; access pattern is under [List Indices](https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#list-indices).
          * Source: Ghidra `GFFHeaderInfo.list_indices_count` @ +0x34 (ulong).
-         * Community: PyKotor wiki GFF header (list indices section size).
          */
         uint32_t list_indices_count() const { return m_list_indices_count; }
         gff_t* _root() const { return m__root; }
@@ -580,7 +535,7 @@ public:
          * Field name label (null-padded to 16 bytes, ASCII, first NUL terminates logical name).
          * Referenced by `GFFFieldData.label_index` ×16 from `label_offset`.
          * Engine resolves names when matching `ReadField*` label parameters (e.g. string pointers pushed to `ReadFieldBYTE` @ `0x00411a60`).
-         * Community: PyKotor wiki “Label Array”, `io_gff.py` label read.
+         * Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#label-array
          */
         std::string name() const { return m_name; }
         gff_t* _root() const { return m__root; }
@@ -647,7 +602,7 @@ public:
 
         /**
          * Little-endian count of following struct indices (list cardinality).
-         * On-disk list node prefix; aligns with PyKotor / reone list decode.
+         * Wiki list packing: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#list-indices
          */
         uint32_t num_struct_indices() const { return m_num_struct_indices; }
 
@@ -947,7 +902,7 @@ public:
 
         /**
          * `GFFFieldTypes` 18 — TLK StrRef inline (same 4-byte width as type 5; distinct meaning).
-         * `0xFFFFFFFF` often unset. Cite: pykotor_wiki_gff_format.
+         * `0xFFFFFFFF` often unset. Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#gff-data-types and https://github.com/OpenKotOR/PyKotor/wiki/Audio-and-Localization-Formats#string-references-strref
          */
         uint32_t value_str_ref();
 
@@ -1284,7 +1239,7 @@ public:
 
         /**
          * Derived: `GFFStructData.field_count == 1` ⇒ `data_or_data_offset` holds a direct index into the field dictionary.
-         * Same rule in PyKotor / xoreos / reone readers.
+         * Same access pattern: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#struct-array
          */
         bool has_single_field();
 
@@ -1353,9 +1308,9 @@ private:
 public:
 
     /**
-     * Field dictionary: `header.field_count` records × 12 bytes at `header.field_offset`.
-     * Ghidra: `GFFFieldData`; header slots `field_offset` @ +0x10, `field_count` @ +0x14.
-     * Indexed by struct metadata (single index or `field_indices_array` slice); `CResGFF::GetField` uses 12-byte stride.
+     * Field dictionary: `header.field_count` × 12 B at `header.field_offset`. Ghidra: `GFFFieldData`.
+     * `CResGFF::GetField` @ `0x00410990` uses 12-byte stride on this table.
+     * Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#field-array
      */
     field_array_t* field_array();
 
@@ -1372,9 +1327,8 @@ private:
 public:
 
     /**
-     * Heap for complex field payloads (strings, vectors, binary, etc.).
-     * Ghidra: addressed via `GFFHeaderInfo.field_data_offset` @ +0x20, size `field_data_count` @ +0x24.
-     * Each `GFFFieldData` with a complex `GFFFieldTypes` value stores a byte offset from this base in `data_or_data_offset` (+0x8).
+     * Complex-type payload heap. Ghidra: `field_data_offset` @ +0x20, size `field_data_count` @ +0x24.
+     * Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#field-data
      */
     field_data_t* field_data();
 
@@ -1391,9 +1345,9 @@ private:
 public:
 
     /**
-     * Flat `u4` stream of field indices; multi-field structs reference a subrange via `GFFStructData.data_or_data_offset`.
-     * Ghidra: `GFFHeaderInfo.field_indices_offset` @ +0x28, element count `field_indices_count` @ +0x2C.
-     * Semantics: wiki / PyKotor “multi-field struct” indexing (consecutive `u4` indices).
+     * Flat `u4` stream (`field_indices_count` elements). Multi-field structs slice via `GFFStructData.data_or_data_offset`.
+     * Ghidra: `field_indices_offset` @ +0x28, `field_indices_count` @ +0x2C.
+     * Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#field-indices-multiple-element-map--multimap
      */
     field_indices_array_t* field_indices_array();
 
@@ -1411,9 +1365,8 @@ public:
 
     /**
      * Label table: `header.label_count` entries ×16 bytes at `header.label_offset`.
-     * Ghidra: not a separate struct name; slots are indexed by `GFFFieldData.label_index` (`+0x4`).
-     * Each `label_entry` is one on-disk name field (compare `GFFHeaderInfo.label_offset` / `label_count` @ +0x18 / +0x1C).
-     * Mirrors: pykotor_io_gff, pykotor_wiki_gff_format (Label Array).
+     * Ghidra: slots indexed by `GFFFieldData.label_index` (+0x4); header fields `label_offset` / `label_count` @ +0x18 / +0x1C.
+     * Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#label-array
      */
     label_array_t* label_array();
 
@@ -1430,9 +1383,9 @@ private:
 public:
 
     /**
-     * Byte arena for list nodes (`u4` count + `u4` struct indices). List-typed fields store offsets from this base.
-     * Ghidra: `GFFHeaderInfo.list_indices_offset` @ +0x30, size `list_indices_count` @ +0x34 (bytes, not element count).
-     * Parsed shape: `list_entry`; compare reone `gffreader.cpp` / PyKotor list handling.
+     * Packed list nodes (`u4` count + `u4` struct indices). List fields store byte offsets from this arena base.
+     * Ghidra: `list_indices_offset` @ +0x30; `list_indices_count` @ +0x34 = span length in bytes (this `.ksy` `raw_data` size).
+     * Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#list-indices
      */
     list_indices_array_t* list_indices_array();
 
@@ -1462,9 +1415,8 @@ private:
 public:
 
     /**
-     * Struct table: `header.struct_count` records × 12 bytes at `header.struct_offset`.
-     * Ghidra: `GFFStructData` per row; see `GFFHeaderInfo.struct_offset` @ +0x8, `struct_count` @ +0xC.
-     * Root struct for the file is conventionally index 0 (engine + community readers agree).
+     * Struct table: `header.struct_count` × 12 B at `header.struct_offset`. Ghidra: `GFFStructData` rows.
+     * Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#struct-array
      */
     struct_array_t* struct_array();
 
@@ -1476,9 +1428,8 @@ private:
 public:
 
     /**
-     * GFF file header (56 bytes), layout-identical to Ghidra `GFFHeaderInfo` on `/K1/k1_win_gog_swkotor.exe`.
-     * Offsets/counts in this header address all other tables from file offset 0.
-     * Community parity: PyKotor `io_gff` / wiki `GFF-File-Format.md` (header diagram).
+     * Wire header (56 B). Ghidra: `GFFHeaderInfo` on `/K1/k1_win_gog_swkotor.exe`.
+     * Wiki: https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#file-header — full offset/size table.
      */
     gff_header_t* header() const { return m_header; }
     gff_t* _root() const { return m__root; }
