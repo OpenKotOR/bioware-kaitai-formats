@@ -7,6 +7,8 @@ meta:
   file-extension: lyt
   ks-version: 0.11
   xref:
+    ghidra_odyssey_k1:
+      note: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: CResLYT present; ASCII LYT wire format as in this definition."
     pykotor: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/lyt/
     reone: https://github.com/seedhartha/reone/blob/master/src/libs/resource/format/lytreader.cpp
     xoreos: https://github.com/xoreos/xoreos/blob/master/src/aurora/lytfile.cpp
