@@ -5,6 +5,8 @@ meta:
   endian: le
   file-extension: bzf
   xref:
+    ghidra_odyssey_k1:
+      note: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: compressed BZF archives pair with BIF/KEY loading paths (same family as BIF)."
     pykotor: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/bif/
     pykotor_wiki_bif_file_format: https://github.com/OldRepublicDevs/PyKotor/wiki/BIF-File-Format.md
     pykotor_wiki_bif_bzf: https://github.com/OldRepublicDevs/PyKotor/wiki/BIF-BZF.md
