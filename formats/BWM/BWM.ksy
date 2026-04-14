@@ -8,6 +8,8 @@ meta:
     - pwk
     - wok
   xref:
+    ghidra_odyssey_k1:
+      note: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: walkmesh resources (.wok/.dwk/.pwk) loaded for pathfinding; binary BWM per PyKotor wiki."
     pykotor: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/bwm/
     reone: https://github.com/seedhartha/reone/blob/master/src/libs/graphics/format/bwmreader.cpp
     xoreos: https://github.com/xoreos/xoreos/blob/master/src/engines/kotorbase/path/walkmeshloader.cpp
