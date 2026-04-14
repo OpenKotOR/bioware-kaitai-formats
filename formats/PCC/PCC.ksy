@@ -5,6 +5,8 @@ meta:
   endian: le
   file-extension: pcc
   xref:
+    ghidra_odyssey_k1:
+      note: "Mass Effect PCC format; not part of KotOR k1_win_gog_swkotor.exe (Odyssey). Do not treat as K1 engine-grounded."
     me3explorer: https://me3explorer.fandom.com/wiki/PCC_File_Format
 doc: |
   PCC (Package) files are BioWare's proprietary version of Unreal Engine package files.
