@@ -18,19 +18,22 @@ namespace Kaitai
     /// - File Header (56 bytes): File type signature (FourCC), version, counts, and offsets to all
     ///   data tables (structs, fields, labels, field_data, field_indices, list_indices)
     /// - Label Array: Array of 16-byte null-padded field name labels
-    /// - Struct Array: Array of struct entries (12 bytes each) - struct_id, data_or_offset, field_count
+    /// - Struct Array: Array of struct entries (12 bytes each) - struct_id (uint32; 0xFFFFFFFF = generic per engine), data_or_offset, field_count
     /// - Field Array: Array of field entries (12 bytes each) - field_type, label_index, data_or_offset
     /// - Field Data: Storage area for complex field types (strings, binary, vectors, etc.)
     /// - Field Indices Array: Array of field index arrays (used when structs have multiple fields)
     /// - List Indices Array: Array of list entry structures (count + struct indices)
     /// 
     /// Field Types:
-    /// - Simple types (0-5, 8): Stored inline in data_or_offset (uint8, int8, uint16, int16, uint32,
-    ///   int32, float)
+    /// - Simple types (0-5, 8, 18): Stored inline in data_or_offset (uint8, int8, uint16, int16, uint32,
+    ///   int32, float, str_ref as TLK StrRef / uint32)
     /// - Complex types (6-7, 9-13, 16-17): Offset to field_data section (uint64, int64, double, string,
     ///   resref, localized_string, binary, vector4, vector3)
     /// - Struct (14): Struct index stored inline (nested struct)
     /// - List (15): Offset to list_indices_array (list of structs)
+    /// 
+    /// StrRef (18) is a distinct field type from Int (5): same 4-byte inline width, indexes dialog.tlk
+    /// (see PyKotor wiki GFF-File-Format.md — GFF Data Types).
     /// 
     /// Struct Access Pattern:
     /// 1. Root struct is always at struct_array index 0
@@ -80,6 +83,7 @@ namespace Kaitai
             List = 15,
             Vector4 = 16,
             Vector3 = 17,
+            StrRef = 18,
         }
         public Gff(KaitaiStream p__io, KaitaiStruct p__parent = null, Gff p__root = null) : base(p__io)
         {
@@ -259,7 +263,7 @@ namespace Kaitai
                     if (f_isSimpleType)
                         return _isSimpleType;
                     f_isSimpleType = true;
-                    _isSimpleType = (bool) ( ((FieldType == Gff.GffFieldType.Uint8) || (FieldType == Gff.GffFieldType.Int8) || (FieldType == Gff.GffFieldType.Uint16) || (FieldType == Gff.GffFieldType.Int16) || (FieldType == Gff.GffFieldType.Uint32) || (FieldType == Gff.GffFieldType.Int32) || (FieldType == Gff.GffFieldType.Single)) );
+                    _isSimpleType = (bool) ( ((FieldType == Gff.GffFieldType.Uint8) || (FieldType == Gff.GffFieldType.Int8) || (FieldType == Gff.GffFieldType.Uint16) || (FieldType == Gff.GffFieldType.Int16) || (FieldType == Gff.GffFieldType.Uint32) || (FieldType == Gff.GffFieldType.Int32) || (FieldType == Gff.GffFieldType.Single) || (FieldType == Gff.GffFieldType.StrRef)) );
                     return _isSimpleType;
                 }
             }
@@ -326,7 +330,7 @@ namespace Kaitai
 
             /// <summary>
             /// Field data type (see gff_field_type enum):
-            /// - 0-5, 8: Simple types (stored inline in data_or_offset)
+            /// - 0-5, 8, 18: Simple types (stored inline in data_or_offset)
             /// - 6-7, 9-13, 16-17: Complex types (offset to field_data in data_or_offset)
             /// - 14: Struct (struct index in data_or_offset)
             /// - 15: List (offset to list_indices_array in data_or_offset)
@@ -672,7 +676,8 @@ namespace Kaitai
 
         /// <summary>
         /// A decoded field: includes resolved label string and decoded typed value.
-        /// Exactly one `value_*` instance (or one of `value_struct` / `list_*`) will be non-null.
+        /// Exactly one `value_*` instance (or one of `value_struct` / `list_*`) will be active for a
+        /// valid field_type; includes `value_str_ref` for TLK StrRef (type 18).
         /// </summary>
         public partial class ResolvedField : KaitaiStruct
         {
@@ -695,6 +700,7 @@ namespace Kaitai
                 f_valueLocalizedString = false;
                 f_valueResref = false;
                 f_valueSingle = false;
+                f_valueStrRef = false;
                 f_valueString = false;
                 f_valueStruct = false;
                 f_valueUint16 = false;
@@ -970,6 +976,29 @@ namespace Kaitai
                         m_io.Seek(_pos);
                     }
                     return _valueSingle;
+                }
+            }
+            private bool f_valueStrRef;
+            private uint? _valueStrRef;
+
+            /// <summary>
+            /// TLK string reference stored inline (type ID 18). Same width as int32; 0xFFFFFFFF means
+            /// no string / not set in many game files (see TLK StrRef conventions).
+            /// </summary>
+            public uint? ValueStrRef
+            {
+                get
+                {
+                    if (f_valueStrRef)
+                        return _valueStrRef;
+                    f_valueStrRef = true;
+                    if (Entry.FieldType == Gff.GffFieldType.StrRef) {
+                        long _pos = m_io.Pos;
+                        m_io.Seek(FieldEntryPos + 8);
+                        _valueStrRef = m_io.ReadU4le();
+                        m_io.Seek(_pos);
+                    }
+                    return _valueStrRef;
                 }
             }
             private bool f_valueString;
@@ -1300,7 +1329,7 @@ namespace Kaitai
             }
             private void _read()
             {
-                _structId = m_io.ReadS4le();
+                _structId = m_io.ReadU4le();
                 _dataOrOffset = m_io.ReadU4le();
                 _fieldCount = m_io.ReadU4le();
             }
@@ -1376,17 +1405,17 @@ namespace Kaitai
                     return _singleFieldIndex;
                 }
             }
-            private int _structId;
+            private uint _structId;
             private uint _dataOrOffset;
             private uint _fieldCount;
             private Gff m_root;
             private KaitaiStruct m_parent;
 
             /// <summary>
-            /// Structure type identifier. Often 0xFFFFFFFF (-1) for generic structs.
-            /// Used to identify struct types in schema-aware parsers.
+            /// Structure type identifier (GFFStructData.id in k1_win_gog_swkotor.exe / Odyssey Ghidra).
+            /// 0xFFFFFFFF is the conventional &quot;generic&quot; / unset id in KotOR data; other values are schema-specific.
             /// </summary>
-            public int StructId { get { return _structId; } }
+            public uint StructId { get { return _structId; } }
 
             /// <summary>
             /// Field index (if field_count == 1) or byte offset to field indices array (if field_count &gt; 1).
