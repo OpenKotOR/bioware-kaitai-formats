@@ -4,6 +4,9 @@ meta:
   license: MIT
   endian: le
   xref:
+    ghidra_odyssey_k1:
+      note: |
+        Tooling-only enums (not read from swkotor.exe resources). Kept separate from Odyssey Ghidra wire layouts.
     pykotor_ref: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/extract/installation.py
     andastra_ref: https://github.com/OldRepublicDevs/Andastra/blob/master/src/andastra/parsing/extract/installation.cs
 doc: |
