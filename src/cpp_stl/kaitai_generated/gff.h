@@ -20,6 +20,13 @@ class gff_t;
  * It is used by many KotOR file types including UTC (creature), UTI (item), DLG (dialogue),
  * ARE (area), GIT (game instance template), IFO (module info), and many others.
  * 
+ * Primary reverse-engineering anchor: Odyssey Ghidra program `/K1/k1_win_gog_swkotor.exe` exports the
+ * on-disk record layouts `GFFHeaderInfo` (56 B), `GFFStructData` (12 B), `GFFFieldData` (12 B), and
+ * the `GFFFieldTypes` enumeration. Runtime class `CResGFF` (ctors e.g. `0x004105a0`, `0x00410630`) holds
+ * parsed tables in memory; accessors such as `CResGFF::GetField` (`0x00410990`) and `ReadField*` family
+ * (`0x00411a60` BYTE, `0x00411c90` INT, etc.) consume those structures. This `.ksy` describes the file
+ * bytes those parsers ultimately populate from (not the in-memory `CResGFF` layout).
+ * 
  * GFF uses a hierarchical structure with structs containing fields, which can be simple values,
  * nested structs, or lists of structs. The format supports version V3.2 (KotOR) and later
  * versions (V3.3, V4.0, V4.1) used in other BioWare games.
@@ -122,6 +129,10 @@ private:
 public:
     ~gff_t();
 
+    /**
+     * Table of `GFFFieldData` rows (`field_count` × 12 bytes at `field_offset`). Indexed by struct metadata and `field_indices_array`.
+     */
+
     class field_array_t : public kaitai::kstruct {
 
     public:
@@ -143,12 +154,17 @@ public:
     public:
 
         /**
-         * Array of field entries (12 bytes each)
+         * Repeated `field_entry` (`GFFFieldData`); count `field_count`, base `field_offset`.
+         * Stride 12 bytes; consistent with `CResGFF::GetField` indexing (`0x00410990`).
          */
         std::vector<field_entry_t*>* entries() const { return m_entries; }
         gff_t* _root() const { return m__root; }
         gff_t* _parent() const { return m__parent; }
     };
+
+    /**
+     * Byte arena for complex field payloads; span = `field_data_count` from `field_data_offset` (`GFFHeaderInfo` +0x20 / +0x24).
+     */
 
     class field_data_t : public kaitai::kstruct {
 
@@ -171,21 +187,20 @@ public:
     public:
 
         /**
-         * Raw field data storage. Individual field data entries are accessed via
-         * field_entry.field_data_offset_value offsets. The structure of each entry
-         * depends on the field_type:
-         * - UInt64/Int64/Double: 8 bytes
-         * - String: 4-byte length + string bytes
-         * - ResRef: 1-byte length + string bytes (max 16)
-         * - LocalizedString: variable (see bioware_common::bioware_locstring type)
-         * - Binary: 4-byte length + binary bytes
-         * - Vector3: 12 bytes (3×float)
-         * - Vector4: 16 bytes (4×float)
+         * Opaque span sized by `GFFHeaderInfo.field_data_count` @ +0x24; base @ +0x20.
+         * Entries are addressed only through `GFFFieldData` complex-type offsets (not sequential).
+         * Per-type layouts: see `resolved_field` value_* instances and `bioware_common` types (CExoString, ResRef, LocString, vectors, binary).
+         * Community: PyKotor `io_gff.py` / wiki “Field Data”; reone `gffreader.cpp`.
          */
         std::string raw_data() const { return m_raw_data; }
         gff_t* _root() const { return m__root; }
         gff_t* _parent() const { return m__parent; }
     };
+
+    /**
+     * One `GFFFieldData` row: `field_type` (+0, `GFFFieldTypes`), `label_index` (+4), `data_or_data_offset` (+8).
+     * `CResGFF::GetField` @ `0x00410990` walks these with 12-byte stride.
+     */
 
     class field_entry_t : public kaitai::kstruct {
 
@@ -213,7 +228,7 @@ public:
     public:
 
         /**
-         * Absolute file offset to field data for complex types
+         * Absolute file offset: `GFFHeaderInfo.field_data_offset` + relative payload offset in `GFFFieldData`.
          */
         int32_t field_data_offset_value();
 
@@ -224,7 +239,7 @@ public:
     public:
 
         /**
-         * True if field stores data in field_data section
+         * Derived: `data_or_data_offset` is byte offset into `field_data` blob (base `field_data_offset`).
          */
         bool is_complex_type();
 
@@ -235,7 +250,7 @@ public:
     public:
 
         /**
-         * True if field is a list of structs
+         * Derived: `data_or_data_offset` is byte offset into `list_indices_array` (base `list_indices_offset`).
          */
         bool is_list_type();
 
@@ -246,7 +261,8 @@ public:
     public:
 
         /**
-         * True if field stores data inline (simple types)
+         * Derived: inline scalars — payload lives in the 4-byte `GFFFieldData.data_or_data_offset` word (`+0x8` in the 12-byte record).
+         * Matches readers that widen to 32-bit in-memory (see `ReadField*` callers).
          */
         bool is_simple_type();
 
@@ -257,7 +273,7 @@ public:
     public:
 
         /**
-         * True if field is a nested struct
+         * Derived: `data_or_data_offset` is struct index into `struct_array` (`GFFStructData` row).
          */
         bool is_struct_type();
 
@@ -274,7 +290,7 @@ public:
     public:
 
         /**
-         * Absolute file offset to list indices for list type fields
+         * Absolute file offset to a `list_entry` (count + indices) inside `list_indices_array`.
          */
         int32_t list_indices_offset_value();
 
@@ -291,7 +307,7 @@ public:
     public:
 
         /**
-         * Struct index for struct type fields
+         * Struct index (same numeric interpretation as `GFFStructData` row index).
          */
         uint32_t struct_index_value();
 
@@ -337,6 +353,10 @@ public:
         kaitai::kstruct* _parent() const { return m__parent; }
     };
 
+    /**
+     * Flat `u4` stream (`field_indices_count` elements from `field_indices_offset`). Multi-field structs slice this stream via `GFFStructData.data_or_data_offset`.
+     */
+
     class field_indices_array_t : public kaitai::kstruct {
 
     public:
@@ -358,14 +378,19 @@ public:
     public:
 
         /**
-         * Array of field indices. When a struct has multiple fields, it stores an offset
-         * into this array, and the next N consecutive u4 values (where N = struct.field_count)
-         * are the field indices for that struct.
+         * `field_indices_count` × `u4` from `field_indices_offset`. No per-row header on disk —
+         * `GFFStructData` for a multi-field struct points at the first `u4` of its slice; length = `field_count`.
+         * Ghidra: counts/offset from `GFFHeaderInfo` @ +0x28 / +0x2C.
          */
         std::vector<uint32_t>* indices() const { return m_indices; }
         gff_t* _root() const { return m__root; }
         gff_t* _parent() const { return m__parent; }
     };
+
+    /**
+     * Fixed 56-byte file header. Ghidra `/K1/k1_win_gog_swkotor.exe`: datatype `GFFHeaderInfo` (components listed per field below).
+     * Community mirror: PyKotor wiki `GFF-File-Format.md` header diagram; `io_gff.py` header read.
+     */
 
     class gff_header_t : public kaitai::kstruct {
 
@@ -491,6 +516,11 @@ public:
         gff_t* _parent() const { return m__parent; }
     };
 
+    /**
+     * Contiguous table of `label_count` fixed 16-byte ASCII name slots at `label_offset`.
+     * Indexed by `GFFFieldData.label_index` (×16). Not a separate Ghidra struct — rows are `char[16]` in bulk.
+     */
+
     class label_array_t : public kaitai::kstruct {
 
     public:
@@ -512,12 +542,17 @@ public:
     public:
 
         /**
-         * Array of label entries (16 bytes each)
+         * Repeated `label_entry`; count from `GFFHeaderInfo.label_count`. Stride 16 bytes per label.
+         * Index `i` is at file offset `label_offset + i*16`.
          */
         std::vector<label_entry_t*>* labels() const { return m_labels; }
         gff_t* _root() const { return m__root; }
         gff_t* _parent() const { return m__parent; }
     };
+
+    /**
+     * One on-disk label: 16 bytes ASCII, NUL-padded (GFF label convention). Same bytes as `label_entry_terminated` without terminator trim.
+     */
 
     class label_entry_t : public kaitai::kstruct {
 
@@ -540,9 +575,10 @@ public:
     public:
 
         /**
-         * Field name label (null-padded to 16 bytes, null-terminated).
-         * The actual label length is determined by the first null byte.
-         * Application code should trim trailing null bytes when using this field.
+         * Field name label (null-padded to 16 bytes, ASCII, first NUL terminates logical name).
+         * Referenced by `GFFFieldData.label_index` ×16 from `label_offset`.
+         * Engine resolves names when matching `ReadField*` label parameters (e.g. string pointers pushed to `ReadFieldBYTE` @ `0x00411a60`).
+         * Community: PyKotor wiki “Label Array”, `io_gff.py` label read.
          */
         std::string name() const { return m_name; }
         gff_t* _root() const { return m__root; }
@@ -550,8 +586,8 @@ public:
     };
 
     /**
-     * Label entry as a null-terminated ASCII string within a fixed 16-byte field.
-     * This avoids leaking trailing `\0` bytes into generated-code consumers.
+     * Kaitai helper: same 16-byte on-disk label as `label_entry`, but `str` ends at first NUL (`terminator: 0`).
+     * Not a separate Ghidra datatype. Wire cite: `label_entry.name`.
      */
 
     class label_entry_terminated_t : public kaitai::kstruct {
@@ -573,10 +609,18 @@ public:
         gff_t::resolved_field_t* m__parent;
 
     public:
+
+        /**
+         * Logical ASCII name; bytes match the fixed 16-byte `label_entry` slot up to the first `0x00`.
+         */
         std::string name() const { return m_name; }
         gff_t* _root() const { return m__root; }
         gff_t::resolved_field_t* _parent() const { return m__parent; }
     };
+
+    /**
+     * One list node on disk: leading cardinality then struct row indices. Used when `GFFFieldTypes` = list (15).
+     */
 
     class list_entry_t : public kaitai::kstruct {
 
@@ -600,17 +644,22 @@ public:
     public:
 
         /**
-         * Number of struct indices in this list
+         * Little-endian count of following struct indices (list cardinality).
+         * On-disk list node prefix; aligns with PyKotor / reone list decode.
          */
         uint32_t num_struct_indices() const { return m_num_struct_indices; }
 
         /**
-         * Array of struct indices (indices into struct_array)
+         * Each value indexes `struct_array.entries[index]` (`GFFStructData` row).
          */
         std::vector<uint32_t>* struct_indices() const { return m_struct_indices; }
         gff_t* _root() const { return m__root; }
         gff_t::resolved_field_t* _parent() const { return m__parent; }
     };
+
+    /**
+     * Packed list nodes (`u4` count + `u4` struct indices); arena size `list_indices_count` bytes from `list_indices_offset` (+0x30 / +0x34).
+     */
 
     class list_indices_array_t : public kaitai::kstruct {
 
@@ -633,13 +682,9 @@ public:
     public:
 
         /**
-         * Raw list indices data. List entries are accessed via offsets stored in
-         * list-type field entries (field_entry.list_indices_offset_value).
-         * Each entry starts with a count (u4), followed by that many struct indices (u4 each).
-         * 
-         * Note: This is a raw data block. In practice, list entries are accessed via
-         * offsets stored in list-type field entries, not as a sequential array.
-         * Use list_entry type to parse individual entries at specific offsets.
+         * Byte span `list_indices_count` @ +0x34 from base `list_indices_offset` @ +0x30.
+         * Contains packed `list_entry` blobs at offsets referenced by list-typed `GFFFieldData`.
+         * This `raw_data` instance exposes the whole arena; use `list_entry` at `list_indices_offset + field_offset`.
          */
         std::string raw_data() const { return m_raw_data; }
         gff_t* _root() const { return m__root; }
@@ -647,9 +692,10 @@ public:
     };
 
     /**
-     * A decoded field: includes resolved label string and decoded typed value.
-     * Exactly one `value_*` instance (or one of `value_struct` / `list_*`) will be active for a
-     * valid field_type; includes `value_str_ref` for TLK StrRef (type 18).
+     * Kaitai composition: one `GFFFieldData` row + label + payload.
+     * Inline scalars: read at `field_entry_pos + 8` (same file offset as `data_or_data_offset` in the 12-byte record).
+     * Complex: `field_data_offset + data_or_offset`. List head: `list_indices_offset + data_or_offset`.
+     * For well-formed data, exactly one `value_*` / `value_struct` / `list_*` branch applies.
      */
 
     class resolved_field_t : public kaitai::kstruct {
@@ -672,7 +718,7 @@ public:
     public:
 
         /**
-         * Raw field entry at field_index
+         * Raw `GFFFieldData`; 12-byte stride (see `CResGFF::GetField` @ `0x00410990`).
          */
         field_entry_t* entry();
 
@@ -683,7 +729,7 @@ public:
     public:
 
         /**
-         * Absolute file offset of this field entry (start of 12-byte record)
+         * Byte offset of `field_type` (+0), `label_index` (+4), `data_or_data_offset` (+8).
          */
         int32_t field_entry_pos();
 
@@ -694,7 +740,7 @@ public:
     public:
 
         /**
-         * Resolved field label string
+         * Resolved name: `label_index` × 16 from `label_offset`; matches `ReadField*` label parameters.
          */
         label_entry_terminated_t* label();
 
@@ -711,7 +757,7 @@ public:
     public:
 
         /**
-         * Parsed list entry at offset (list indices)
+         * `GFFFieldTypes` 15 — list node at `list_indices_offset` + relative byte offset.
          */
         list_entry_t* list_entry();
 
@@ -728,7 +774,7 @@ public:
     public:
 
         /**
-         * Resolved structs referenced by this list
+         * Child structs for this list; indices from `list_entry.struct_indices`.
          */
         std::vector<resolved_struct_t*>* list_structs();
 
@@ -743,6 +789,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 13 — binary (`bioware_binary_data`).
+         */
         bioware_common_t::bioware_binary_data_t* value_binary();
 
     private:
@@ -756,6 +806,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 9 (double).
+         */
         double value_double();
 
     private:
@@ -769,6 +823,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 3 (INT16 LE at +8).
+         */
         int16_t value_int16();
 
     private:
@@ -782,6 +840,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 5. `ReadFieldINT` @ `0x00411c90` after lookup.
+         */
         int32_t value_int32();
 
     private:
@@ -795,6 +857,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 7 (INT64).
+         */
         int64_t value_int64();
 
     private:
@@ -808,6 +874,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 1 (INT8 in low byte of slot).
+         */
         int8_t value_int8();
 
     private:
@@ -821,6 +891,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 12 — CExoLocString (`bioware_locstring`).
+         */
         bioware_common_t::bioware_locstring_t* value_localized_string();
 
     private:
@@ -834,6 +908,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 11 — ResRef (`bioware_resref`).
+         */
         bioware_common_t::bioware_resref_t* value_resref();
 
     private:
@@ -847,6 +925,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 8 (32-bit float).
+         */
         float value_single();
 
     private:
@@ -862,8 +944,8 @@ public:
     public:
 
         /**
-         * TLK string reference stored inline (type ID 18). Same width as int32; 0xFFFFFFFF means
-         * no string / not set in many game files (see TLK StrRef conventions).
+         * `GFFFieldTypes` 18 — TLK StrRef inline (same 4-byte width as type 5; distinct meaning).
+         * `0xFFFFFFFF` often unset. Cite: pykotor_wiki_gff_format.
          */
         uint32_t value_str_ref();
 
@@ -878,6 +960,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 10 — CExoString (`bioware_cexo_string`).
+         */
         bioware_common_t::bioware_cexo_string_t* value_string();
 
     private:
@@ -893,7 +979,7 @@ public:
     public:
 
         /**
-         * Nested struct (struct index = entry.data_or_offset)
+         * `GFFFieldTypes` 14 — `data_or_data_offset` is struct row index.
          */
         resolved_struct_t* value_struct();
 
@@ -908,6 +994,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 2 (UINT16 LE at +8).
+         */
         uint16_t value_uint16();
 
     private:
@@ -921,6 +1011,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 4 (full inline DWORD).
+         */
         uint32_t value_uint32();
 
     private:
@@ -934,6 +1028,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 6 (UINT64 at `field_data` + relative offset).
+         */
         uint64_t value_uint64();
 
     private:
@@ -947,6 +1045,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 0 (UINT8). Engine: `ReadFieldBYTE` @ `0x00411a60` after lookup.
+         */
         uint8_t value_uint8();
 
     private:
@@ -960,6 +1062,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 17 — three floats (`bioware_vector3`).
+         */
         bioware_common_t::bioware_vector3_t* value_vector3();
 
     private:
@@ -973,6 +1079,10 @@ public:
     private:
 
     public:
+
+        /**
+         * `GFFFieldTypes` 16 — four floats (`bioware_vector4`).
+         */
         bioware_common_t::bioware_vector4_t* value_vector4();
 
     private:
@@ -983,7 +1093,7 @@ public:
     public:
 
         /**
-         * Index into field_array
+         * Index into `field_array.entries`; require `field_index < field_count`.
          */
         uint32_t field_index() const { return m_field_index; }
         gff_t* _root() const { return m__root; }
@@ -991,8 +1101,8 @@ public:
     };
 
     /**
-     * A decoded struct node: resolves field indices -> field entries -> typed values,
-     * and recursively resolves nested structs and lists.
+     * Kaitai composition: expands one `GFFStructData` row into child `resolved_field`s (recursive).
+     * On-disk row remains at `struct_offset + struct_index * 12`.
      */
 
     class resolved_struct_t : public kaitai::kstruct {
@@ -1015,7 +1125,7 @@ public:
     public:
 
         /**
-         * Raw struct entry at struct_index
+         * Raw `GFFStructData` (Ghidra 12-byte layout).
          */
         struct_entry_t* entry();
 
@@ -1032,8 +1142,8 @@ public:
     public:
 
         /**
-         * Field indices for this struct (only present when field_count > 1).
-         * When field_count == 1, the single field index is stored directly in entry.data_or_offset.
+         * Contiguous `u4` slice when `field_count > 1`; absolute pos = `field_indices_offset` + `data_or_offset`.
+         * Length = `field_count`. If `field_count == 1`, the sole index is `data_or_offset` (see `single_field`).
          */
         std::vector<uint32_t>* field_indices();
 
@@ -1050,7 +1160,7 @@ public:
     public:
 
         /**
-         * Resolved fields (multi-field struct)
+         * One `resolved_field` per entry in `field_indices`.
          */
         std::vector<resolved_field_t*>* fields();
 
@@ -1067,7 +1177,7 @@ public:
     public:
 
         /**
-         * Resolved field (single-field struct)
+         * `field_count == 1`: `data_or_offset` is the field dictionary index (not an offset into `field_indices`).
          */
         resolved_field_t* single_field();
 
@@ -1079,12 +1189,16 @@ public:
     public:
 
         /**
-         * Index into struct_array
+         * Row index into `struct_array.entries`; `0` = root. Require `struct_index < struct_count`.
          */
         uint32_t struct_index() const { return m_struct_index; }
         gff_t* _root() const { return m__root; }
         kaitai::kstruct* _parent() const { return m__parent; }
     };
+
+    /**
+     * Table of `GFFStructData` rows (`struct_count` × 12 bytes at `struct_offset`). Ghidra name `GFFStructData`.
+     */
 
     class struct_array_t : public kaitai::kstruct {
 
@@ -1107,12 +1221,17 @@ public:
     public:
 
         /**
-         * Array of struct entries (12 bytes each)
+         * Repeated `struct_entry` (`GFFStructData`); count from `struct_count`, base `struct_offset`.
+         * Stride 12 bytes per struct (matches Ghidra component sizes).
          */
         std::vector<struct_entry_t*>* entries() const { return m_entries; }
         gff_t* _root() const { return m__root; }
         gff_t* _parent() const { return m__parent; }
     };
+
+    /**
+     * One `GFFStructData` row: `id` (+0), `data_or_data_offset` (+4), `field_count` (+8). Drives single-field vs multi-field indexing.
+     */
 
     class struct_entry_t : public kaitai::kstruct {
 
@@ -1140,7 +1259,7 @@ public:
     public:
 
         /**
-         * Byte offset into field_indices_array when struct has multiple fields
+         * Alias of `data_or_offset` when `field_count > 1`; added to `field_indices_offset` header field for absolute file pos.
          */
         uint32_t field_indices_offset();
 
@@ -1151,7 +1270,7 @@ public:
     public:
 
         /**
-         * True if struct has multiple fields (offset to field indices in data_or_offset)
+         * Derived: `field_count > 1` ⇒ `data_or_data_offset` is byte offset into the flat `field_indices_array` stream.
          */
         bool has_multiple_fields();
 
@@ -1162,7 +1281,8 @@ public:
     public:
 
         /**
-         * True if struct has exactly one field (direct field index in data_or_offset)
+         * Derived: `GFFStructData.field_count == 1` ⇒ `data_or_data_offset` holds a direct index into the field dictionary.
+         * Same rule in PyKotor / xoreos / reone readers.
          */
         bool has_single_field();
 
@@ -1179,7 +1299,7 @@ public:
     public:
 
         /**
-         * Direct field index when struct has exactly one field
+         * Alias of `data_or_offset` when `field_count == 1`; indexes `field_array.entries[index]`.
          */
         uint32_t single_field_index();
 
@@ -1231,7 +1351,9 @@ private:
 public:
 
     /**
-     * Array of field entries (12 bytes each)
+     * Field dictionary: `header.field_count` records × 12 bytes at `header.field_offset`.
+     * Ghidra: `GFFFieldData`; header slots `field_offset` @ +0x10, `field_count` @ +0x14.
+     * Indexed by struct metadata (single index or `field_indices_array` slice); `CResGFF::GetField` uses 12-byte stride.
      */
     field_array_t* field_array();
 
@@ -1248,7 +1370,9 @@ private:
 public:
 
     /**
-     * Storage area for complex field types (strings, binary, vectors, etc.)
+     * Heap for complex field payloads (strings, vectors, binary, etc.).
+     * Ghidra: addressed via `GFFHeaderInfo.field_data_offset` @ +0x20, size `field_data_count` @ +0x24.
+     * Each `GFFFieldData` with a complex `GFFFieldTypes` value stores a byte offset from this base in `data_or_data_offset` (+0x8).
      */
     field_data_t* field_data();
 
@@ -1265,7 +1389,9 @@ private:
 public:
 
     /**
-     * Array of field index arrays (used when structs have multiple fields)
+     * Flat `u4` stream of field indices; multi-field structs reference a subrange via `GFFStructData.data_or_data_offset`.
+     * Ghidra: `GFFHeaderInfo.field_indices_offset` @ +0x28, element count `field_indices_count` @ +0x2C.
+     * Semantics: wiki / PyKotor “multi-field struct” indexing (consecutive `u4` indices).
      */
     field_indices_array_t* field_indices_array();
 
@@ -1282,7 +1408,10 @@ private:
 public:
 
     /**
-     * Array of 16-byte null-padded field name labels
+     * Label table: `header.label_count` entries ×16 bytes at `header.label_offset`.
+     * Ghidra: not a separate struct name; slots are indexed by `GFFFieldData.label_index` (`+0x4`).
+     * Each `label_entry` is one on-disk name field (compare `GFFHeaderInfo.label_offset` / `label_count` @ +0x18 / +0x1C).
+     * Mirrors: pykotor_io_gff, pykotor_wiki_gff_format (Label Array).
      */
     label_array_t* label_array();
 
@@ -1299,7 +1428,9 @@ private:
 public:
 
     /**
-     * Array of list entry structures (count + struct indices)
+     * Byte arena for list nodes (`u4` count + `u4` struct indices). List-typed fields store offsets from this base.
+     * Ghidra: `GFFHeaderInfo.list_indices_offset` @ +0x30, size `list_indices_count` @ +0x34 (bytes, not element count).
+     * Parsed shape: `list_entry`; compare reone `gffreader.cpp` / PyKotor list handling.
      */
     list_indices_array_t* list_indices_array();
 
@@ -1310,9 +1441,9 @@ private:
 public:
 
     /**
-     * Convenience "decoded" view of the root struct (struct_array[0]).
-     * This resolves field indices to field entries, resolves labels to strings,
-     * and decodes field values (including nested structs and lists) into typed instances.
+     * Kaitai-only convenience: decoded view of struct index 0 (`struct_array.entries[0]`).
+     * Not a distinct on-disk record; uses same `GFFStructData` + tables as above.
+     * Implements the access pattern described in meta.doc (single-field vs multi-field structs).
      */
     resolved_struct_t* root_struct_resolved();
 
@@ -1329,7 +1460,9 @@ private:
 public:
 
     /**
-     * Array of struct entries (12 bytes each)
+     * Struct table: `header.struct_count` records × 12 bytes at `header.struct_offset`.
+     * Ghidra: `GFFStructData` per row; see `GFFHeaderInfo.struct_offset` @ +0x8, `struct_count` @ +0xC.
+     * Root struct for the file is conventionally index 0 (engine + community readers agree).
      */
     struct_array_t* struct_array();
 
@@ -1341,7 +1474,9 @@ private:
 public:
 
     /**
-     * GFF file header (56 bytes total)
+     * GFF file header (56 bytes), layout-identical to Ghidra `GFFHeaderInfo` on `/K1/k1_win_gog_swkotor.exe`.
+     * Offsets/counts in this header address all other tables from file offset 0.
+     * Community parity: PyKotor `io_gff` / wiki `GFF-File-Format.md` (header diagram).
      */
     gff_header_t* header() const { return m_header; }
     gff_t* _root() const { return m__root; }
