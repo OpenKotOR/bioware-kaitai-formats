@@ -5,6 +5,8 @@ meta:
   endian: be
   file-extension: ncs
   xref:
+    ghidra_odyssey_k1:
+      note: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: NCS bytecode executed by NWScript VM; big-endian wire format per PyKotor wiki."
     pykotor: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/ncs/
     pykotor_wiki_ncs: https://github.com/OldRepublicDevs/PyKotor/wiki/NCS-File-Format.md
 doc: |
