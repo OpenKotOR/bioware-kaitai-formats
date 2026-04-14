@@ -6,6 +6,10 @@ meta:
   file-extension:
     - 2da
   xref:
+    ghidra_odyssey_k1:
+      note: |
+        Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: parsed tables use C2DA/CRes2DA in-memory layouts after load;
+        on-disk .2da text/binary hybrid format here matches PyKotor (not the C++ struct layout).
     pykotor: https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/twoda/
     pykotor_wiki_twoda: https://github.com/OldRepublicDevs/PyKotor/wiki/TwoDA-File-Format.md
 doc: |
