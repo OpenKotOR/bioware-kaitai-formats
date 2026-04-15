@@ -195,7 +195,7 @@ bioware-kaitai-formats/
 │   │       │   └── ARE_XML.ksy   # XML variant
 │   │       └── UTC/
 │   ├── Common/
-│   │   └── BioWare_Common.ksy  # Shared types/enums
+│   │   └── bioware_common.ksy  # Shared types/enums
 │   └── ...
 ├── src/                  # Generated code
 │   ├── python/

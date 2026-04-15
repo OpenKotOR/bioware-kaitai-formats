@@ -47,21 +47,21 @@ Many formats have XML and JSON variants used in modern tools:
 
 ## Supported Languages
 
-Generated code is automatically published to package managers for:
+Generated code lives under `src/<language>/kaitai_generated/`. **PyPI** carries stable Python wheels; other ecosystems are primarily **in-repo generators** (see `.github/workflows/*.yml` for optional publish steps — do not assume a registry URL exists until a release is published there).
 
-- **Python** - [PyPI](https://pypi.org/project/bioware-kaitai-formats/)
-- **JavaScript/TypeScript** - [npm](https://www.npmjs.com/package/bioware-kaitai-formats)
-- **Java** - [Maven Central](https://search.maven.org/artifact/com.bioware/kaitai-formats)
-- **Go** - Go modules (via GitHub)
-- **Rust** - [crates.io](https://crates.io/crates/bioware-kaitai-formats)
-- **C/C++** - [vcpkg](https://github.com/Microsoft/vcpkg)
-- **C#** - [NuGet](https://www.nuget.org/packages/BioWareKaitaiFormats)
-- **Ruby** - [RubyGems](https://rubygems.org/gems/bioware-kaitai-formats)
-- **PHP** - [Packagist](https://packagist.org/packages/bioware/kaitai-formats)
-- **Lua** - [luarocks](https://luarocks.org/modules/bioware/kaitai-formats)
-- **Perl** - [CPAN](https://metacpan.org/pod/BioWare::Kaitai::Formats)
-- **Nim** - [nimble](https://nimble.directory/pkg/bioware-kaitai-formats)
-- **Swift** - [Swift Package Manager](https://swift.org/package-manager/)
+- **Python** — [PyPI](https://pypi.org/project/bioware-kaitai-formats/)
+- **JavaScript/TypeScript** — `src/javascript/` / `src/typescript/` (optional npm publish: `javascript.yml`)
+- **Java** — `src/java/` (optional Maven Central: `java.yml`)
+- **Go** — `src/go/` (module path from this repository)
+- **Rust** — `src/rust/` (optional crates.io: `rust.yml`)
+- **C/C++** — [vcpkg](https://github.com/microsoft/vcpkg) port overlay patterns; generated headers/sources under `src/cpp/`
+- **C#** — `src/csharp/` (optional NuGet: `csharp.yml`)
+- **Ruby** — `src/ruby/` (optional RubyGems: `ruby.yml`)
+- **PHP** — [Packagist](https://packagist.org/packages/bioware/kaitai-formats) (when a tagged release is pushed)
+- **Lua** — `src/lua/` (optional LuaRocks: `lua.yml`)
+- **Perl** — [CPAN](https://metacpan.org/pod/BioWare::Kaitai::Formats) (when indexed)
+- **Nim** — `src/nim/` (optional nimble directory listing)
+- **Swift** — [Swift Package Manager](https://www.swift.org/documentation/package-manager/) (generated `src/swift/` layout)
 
 ## Quick Start
 

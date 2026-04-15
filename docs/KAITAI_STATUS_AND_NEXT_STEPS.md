@@ -22,6 +22,7 @@ _Last aligned with the working tree in 2026; treat [`docs/XOREOS_FORMAT_COVERAGE
 
 - **Binary wire in `.ksy` only** — Do not model plaintext interchange (TXI, VIS, NSS, MDL ASCII, arbitrary XML/JSON/CSV payloads) in Kaitai unless the team explicitly expands scope. The tree retains **`formats/GFF/XML/GFF_XML.ksy`** where XML is still tracked; other plaintext siblings were removed per that policy.
 - **Upstream citations** — Prefer `meta.xref` / `doc` URLs to **xoreos `master`** (and PyKotor / tooling) at stable line anchors; see §9 in [`XOREOS_FORMAT_COVERAGE.md`](XOREOS_FORMAT_COVERAGE.md).
+- **Kaitai `meta.doc` hygiene** — Root `meta.doc` is embedded verbatim in generated parser docstrings. Keep it short and wire-focused; put pinned proof in `meta.xref`, optional “Further reading” in `doc-ref`, and long narrative in Markdown (not numbered bibliographies in `doc`). Full convention: [`AGENTS.md`](../AGENTS.md) (“Kaitai `meta.doc`, `doc-ref`, and `meta.xref`”). Concise example: [`formats/MDL/MDL.ksy`](../formats/MDL/MDL.ksy).
 
 ### Major structural facts
 

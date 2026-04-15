@@ -107,8 +107,8 @@ Formats with `*file.cpp` implementations:
 2. formats/BIF/BZF.ksy
 3. formats/BIF/KEY.ksy
 4. formats/BWM/BWM.ksy
-5. formats/Common/BioWare_Common.ksy
-6. formats/Common/BioWare_TypeIds.ksy
+5. formats/Common/bioware_common.ksy
+6. formats/Common/bioware_type_ids.ksy
 7. formats/DA2S/DA2S.ksy
 8. formats/DAS/DAS.ksy
 9. formats/ERF/ERF.ksy
