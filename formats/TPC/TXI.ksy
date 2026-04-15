@@ -74,6 +74,7 @@ doc: |
   Index: `meta.xref` and `doc-ref`.
 
 doc-ref:
+  - "https://github.com/OpenKotOR/bioware-kaitai-formats/blob/master/formats/Common/bioware_type_ids.ksy In-tree — `xoreos_file_type_id` / restype **2022** (`txi`)"
   - "https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#txi PyKotor wiki — TXI"
   - "https://github.com/OpenKotOR/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/txi/io_txi.py#L20-L50 PyKotor — TXI reader (`TXIReaderMode`, `TXIBinaryReader.load` start)"
   - "https://github.com/OpenKotOR/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/txi/txi_data.py#L619-L684 PyKotor — `TXICommand` enum block"
@@ -83,6 +84,7 @@ doc-ref:
   - "https://github.com/xoreos/xoreos/blob/master/src/aurora/types.h#L88 xoreos — `kFileTypeTXI`"
   - "https://github.com/xoreos/xoreos-docs/tree/master/specs/bioware xoreos-docs — BioWare specs PDF tree"
   - "https://github.com/xoreos/xoreos-docs/blob/master/specs/kotor_mdl.html xoreos-docs — KotOR MDL overview (TPC-attached TXI context)"
+  - "https://github.com/KobaltBlu/KotOR.js/blob/master/src/resource/TXI.ts#L16-L120 KotOR.js — `TXI` + `ParseInfo` (ASCII command switch)"
 
 seq:
   - id: content

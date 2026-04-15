@@ -13,7 +13,9 @@ meta:
       Maintainer index: docs/XOREOS_FORMAT_COVERAGE.md (xoreos / xoreos-tools / xoreos-docs ↔ this spec; submodule section 0).
       KotOR PC binary evidence: Cursor MCP user-agdec-http (Odyssey) — see AGENTS.md.
     ghidra_odyssey_k1: |
-      Odyssey Ghidra /K1/k1_win_gog_swkotor.exe--MDL mesh resources loaded by Aurora renderer; layout per PyKotor MDL-MDX wiki.
+      Odyssey Ghidra `/K1/k1_win_gog_swkotor.exe` exposes **`class CResMDL`** (binary MDL resource). Decompiler output may not surface the
+      class name on every vtable method; use **`user-agdec-http`** structure / xref tools on **`CResMDL`** for loader evidence alongside
+      PyKotor `io_mdl` / xoreos `Model_KotOR::load`. Header unknowns remain `TODO: VERIFY` per `mdl_model_header_unknown_fields_policy`.
     mdl_model_header_unknown_fields_policy: |
       Several `model_header` u1/u4 slots and `offset_to_super_root` semantics still carry `TODO: VERIFY` in field `doc:` text.
       They are retained for **PyKotor / MDLOps round-trip** compatibility until pinned with Odyssey **`user-agdec-http`** evidence

@@ -18,11 +18,15 @@ meta:
     reone_tpcreader: https://github.com/modawan/reone/blob/master/src/libs/graphics/format/tpcreader.cpp#L29-L105
     xoreos_docs_bioware_specs_tree: https://github.com/xoreos/xoreos-docs/tree/master/specs/bioware
     xoreos_docs_kotor_mdl: https://github.com/xoreos/xoreos-docs/blob/master/specs/kotor_mdl.html
+    ghidra_odyssey_k1: |
+      Same notes as `formats/TPC/TXB.ksy`: **`CResTGA`** / **`CResDDS`** in a K1 structures+classes inventory; **no** `CResTXB2` / `CResTXB` symbol there;
+      **`CResTPC::OnResourceServiced`** evidence lives under **`formats/TPC/DDS.ksy`**. Treat **TXB2** like **TXB** until on-disk divergence is proven.
 doc: |
   **TXB2** (`kFileTypeTXB2` **3017**): second-generation TXB id in `types.h`; treated like **TXB** / **TPC** by engine
   texture stacks. This capsule mirrors `TXB.ksy` (TPC header + opaque tail) until a divergent wire is proven.
 
 doc-ref:
+  - "https://github.com/OpenKotOR/bioware-kaitai-formats/blob/master/formats/TPC/DDS.ksy In-tree — Ghidra `CResTPC::OnResourceServiced` (shared with TXB / TPC family)"
   - "https://github.com/xoreos/xoreos/blob/master/src/aurora/types.h#L192 xoreos — `kFileTypeTXB2`"
   - "https://github.com/xoreos/xoreos/blob/master/src/graphics/images/tpc.cpp#L52-L66 xoreos — `TPC::load` (texture family)"
   - "https://github.com/xoreos/xoreos-tools/blob/master/src/images/tpc.cpp#L51-L68 xoreos-tools — `TPC::load`"

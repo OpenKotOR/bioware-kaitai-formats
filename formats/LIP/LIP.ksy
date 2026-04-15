@@ -11,7 +11,9 @@ meta:
       Maintainer index: docs/XOREOS_FORMAT_COVERAGE.md (xoreos / xoreos-tools / xoreos-docs ↔ this spec; submodule section 0).
       KotOR PC binary evidence: Cursor MCP user-agdec-http (Odyssey) — see AGENTS.md.
     ghidra_odyssey_k1: |
-      Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: LIP resources parsed for lip-sync; binary layout per PyKotor/reone.
+      Odyssey MCP `user-agdec-http` on `/K1/k1_win_gog_swkotor.exe` (classes+structures search for **`CResLIP`**): **no**
+      `CResLIP` symbol returned (contrast **`CResMDL`**, **`CResLTR`**, …). Lip-sync **wire** in this repo is therefore pinned to
+      **PyKotor `io_lip` / `lip_data`**, **reone `LipReader`**, and **KotOR.js** (`meta.xref`) until a Ghidra class/vtable name is recovered.
     pykotor: https://github.com/OpenKotOR/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/lip/
     github_openkotor_pykotor_io_lip: |
       https://github.com/OpenKotOR/PyKotor — `Libraries/PyKotor/src/pykotor/resource/formats/lip/io_lip.py`:

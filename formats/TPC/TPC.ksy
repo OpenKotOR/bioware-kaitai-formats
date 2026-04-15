@@ -12,11 +12,12 @@ meta:
       Maintainer index: docs/XOREOS_FORMAT_COVERAGE.md (xoreos / xoreos-tools / xoreos-docs ↔ this spec; submodule section 0).
       KotOR PC binary evidence: Cursor MCP user-agdec-http (Odyssey) — see AGENTS.md.
     ghidra_odyssey_k1: |
-      Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: TPC textures loaded via Aurora stack; 128-byte header + payload per PyKotor.
+      Odyssey MCP `user-agdec-http` on `/K1/k1_win_gog_swkotor.exe`: datatype browser inventory lists **`CResTGA`** / **`CResDDS`**;
+      a shallow structures+classes search may **omit** `CResTPC` even though demangled **`CResTPC::OnResourceServiced`** is pinned with **128-byte** header math in **`formats/TPC/DDS.ksy`** (`meta.xref.ghidra_k1_win_gog_swkotor_exe` / TSL block). **TPC** wire authority remains **PyKotor `io_tpc`**, **reone `TpcReader`**, and **xoreos `TPC::load`**, cross-checked against those Ghidra slices.
     ghidra_mcp_odyssey_program_paths: |
-      Odyssey shared Ghidra (user-agdec-http): use `sync-project` then `checkout-program` with `/K1/k1_win_gog_swkotor.exe`,
-      `/TSL/k2_win_gog_aspyr_swkotor2.exe`, and `/Other BioWare Engines/Aurora/nwmain.exe` when correlating `CResTPC` / texture paths
-      (same MCP workflow as `formats/TPC/DDS.ksy` — see `AGENTS.md`).
+      Odyssey shared Ghidra (`user-agdec-http`): `sync-project` / `checkout-program` for `/K1/k1_win_gog_swkotor.exe`,
+      `/TSL/k2_win_gog_aspyr_swkotor2.exe`, and `/Other BioWare Engines/Aurora/nwmain.exe` when tracing **texture** load paths
+      (`CResTGA`, `CResDDS`, … — same MCP workflow as `formats/TPC/DDS.ksy`; see `AGENTS.md`).
     pykotor: https://github.com/OpenKotOR/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/tpc/
     github_openkotor_pykotor_io_tpc: |
       https://github.com/OpenKotOR/PyKotor — `Libraries/PyKotor/src/pykotor/resource/formats/tpc/io_tpc.py`:
@@ -50,6 +51,7 @@ doc: |
   (`meta.xref`).
 
 doc-ref:
+  - "https://github.com/OpenKotOR/bioware-kaitai-formats/blob/master/formats/TPC/DDS.ksy In-tree — Ghidra `CResTPC::OnResourceServiced` (128-byte header constant; K1 + TSL)"
   - "https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#tpc PyKotor wiki — TPC"
   - "https://github.com/OpenKotOR/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/tpc/io_tpc.py#L93-L303 PyKotor — `TPCBinaryReader` + `load`"
   - "https://github.com/OpenKotOR/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/tpc/tpc_data.py#L74-L120 PyKotor — `TPCTextureFormat` (opening)"

@@ -9,10 +9,12 @@ meta:
       Maintainer index: docs/XOREOS_FORMAT_COVERAGE.md (xoreos / xoreos-tools / xoreos-docs ↔ this spec; submodule section 0).
       KotOR PC binary evidence: Cursor MCP user-agdec-http (Odyssey) — see AGENTS.md.
     ghidra_mcp_program_context: |
-      PLT is **NWN / general Aurora** palette-indexed wire (`PLTFile` in xoreos). For Ghidra parity with **`pltfile.cpp`**, an
-      **`nwmain.exe`** checkout in the Odyssey MCP project is appropriate. For **KotOR shipping evidence** (PLT type id present,
-      body unused), correlate **`/K1/k1_win_gog_swkotor.exe`** / TSL builds per `AGENTS.md`.
-    ghidra_odyssey_k1: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: PLT type exists in Aurora tables but KotOR does not ship NWN-style PLT body usage (see doc)."
+      PLT is **NWN / general Aurora** palette-indexed wire (`PLTFile` in xoreos). Odyssey MCP (`user-agdec-http`) inventory:
+      **`/Other BioWare Engines/Aurora/nwmain.exe`** defines **`class CResPLT`** and **`CResHelper<class CResPLT,6>`** (NWN-style PLT resource).
+      **`/K1/k1_win_gog_swkotor.exe`** has **no** `CResPLT` / `ResPLT` structure or class hit in a structures/classes/symbols-scoped search
+      (aligns with KotOR not shipping PLT bodies while retaining Aurora type id **6** in tables — see `meta.xref.github_openkotor_pykotor_resource_type_plt`).
+    ghidra_odyssey_k1: |
+      Odyssey Ghidra `/K1/k1_win_gog_swkotor.exe`: no `CResPLT` symbol; use **`nwmain.exe`** for NWN PLT loader parity with `pltfile.cpp`.
     pykotor_wiki_plt: https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#kotor-plt-file-format-documentation-nwn-legacy
     github_openkotor_pykotor_resource_type_plt: |
       https://github.com/OpenKotOR/PyKotor — `Libraries/PyKotor/src/pykotor/resource/type.py`: **`ResourceType.PLT`** **374–380** (NWN-era type id **6**; KotOR does not ship PLT bodies — see `doc`).
