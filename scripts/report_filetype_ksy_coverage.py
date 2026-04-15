@@ -226,7 +226,11 @@ def default_coverage_row(val: int, name: str) -> dict[str, str]:
         28003,
     }
     if val in d_plain or name in {"ini", "txt", "lyt", "vis", "xml", "json", "nss"}:
-        return {"tier": "D", "spec": "", "notes": "Plaintext / tooling — see AGENTS.md scope"}
+        return {
+            "tier": "D",
+            "spec": "",
+            "notes": "Plaintext / tooling — see AGENTS.md scope",
+        }
 
     # Tier E — common foreign binary (no dedicated BioWare wire spec here)
     e_media = {
@@ -242,11 +246,32 @@ def default_coverage_row(val: int, name: str) -> dict[str, str]:
         25014,
         41000,
     }
-    if val in e_media or name in {"bmp", "mve", "mpg", "wma", "wmv", "xmv", "jpg", "ico", "ogg", "png", "mp3", "wbm"}:
-        return {"tier": "E", "spec": "", "notes": "Standard or codec container — normative spec outside repo"}
+    if val in e_media or name in {
+        "bmp",
+        "mve",
+        "mpg",
+        "wma",
+        "wmv",
+        "xmv",
+        "jpg",
+        "ico",
+        "ogg",
+        "png",
+        "mp3",
+        "wbm",
+    }:
+        return {
+            "tier": "E",
+            "spec": "",
+            "notes": "Standard or codec container — normative spec outside repo",
+        }
 
     # Default: unclassified (still listed so MISSING count stays meaningful when hand-trimming)
-    return {"tier": "U", "spec": "", "notes": "TODO classify (A–E) and add owning spec or policy row"}
+    return {
+        "tier": "U",
+        "spec": "",
+        "notes": "TODO classify (A–E) and add owning spec or policy row",
+    }
 
 
 def write_default_coverage(path: Path, enum_map: dict[int, str]) -> None:
@@ -265,7 +290,7 @@ def write_default_coverage(path: Path, enum_map: dict[int, str]) -> None:
         if spec:
             lines.append(f'    spec: "{spec}"')
         else:
-            lines.append("    spec: \"\"")
+            lines.append('    spec: ""')
         if row.get("notes"):
             lines.append(f'    notes: "{row["notes"]}"')
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -332,11 +357,16 @@ def main() -> int:
         for val, names in sorted(vendor.items(), key=lambda x: x[0]):
             if val not in enum_map:
                 drift.append((val, ", ".join(sorted(names))))
-        print(f"DRIFT (vendor const not in mirrored bioware_type_ids enum): {len(drift)}")
+        print(
+            f"DRIFT (vendor const not in mirrored bioware_type_ids enum): {len(drift)}"
+        )
         for val, names in drift:
             print(f"  DRIFT    {val:6d}  {names}")
     elif args.vendor_types_h:
-        print(f"Note: vendor types.h not found at {args.vendor_types_h} — skipping DRIFT", file=sys.stderr)
+        print(
+            f"Note: vendor types.h not found at {args.vendor_types_h} — skipping DRIFT",
+            file=sys.stderr,
+        )
 
     if args.fail_on_missing and missing:
         return 1
