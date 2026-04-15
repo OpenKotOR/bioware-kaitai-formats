@@ -1,0 +1,56 @@
+{
+  "pinned_at": "2026-04-15",
+  "note": "Fork SHAs for scripts/apply_github_pins.py (rewrites upstream master → pinned forks). In-tree formats/**/*.ksy default to canonical orgs on master (OpenKotOR/PyKotor, xoreos/xoreos, …); use rewrite_canonical_github_urls.py to restore that after a pin pass.",
+  "repos": {
+    "th3w1zard1/xoreos": {
+      "sha": "f36b681b2a38799ddd6fce0f252b6d7fa781dfc2",
+      "default_branch": "master",
+      "replaces": ["xoreos/xoreos"]
+    },
+    "th3w1zard1/xoreos-tools": {
+      "sha": "9ecd99facb6f3f9a1d4d96c5584add96a5f61800",
+      "default_branch": "master",
+      "replaces": ["xoreos/xoreos-tools"]
+    },
+    "th3w1zard1/xoreos-docs": {
+      "sha": "c7f12b09788a331499ce15b1283b630b4feb5163",
+      "default_branch": "master",
+      "replaces": ["xoreos/xoreos-docs"]
+    },
+    "th3w1zard1/PyKotor": {
+      "sha": "cfb5bb5070aff80ce9542f6968beb5fa5342bb33",
+      "default_branch": "master",
+      "replaces": ["OpenKotOR/PyKotor"]
+    },
+    "th3w1zard1/reone": {
+      "sha": "72e7f615a5790adfa2a12105d2570211e1c233b2",
+      "default_branch": "master",
+      "replaces": ["modawan/reone"]
+    },
+    "th3w1zard1/KotOR.js": {
+      "sha": "a9fc837cede88fc50bea7b675cda4f1f8e891264",
+      "default_branch": "master",
+      "replaces": ["KobaltBlu/KotOR.js"]
+    },
+    "th3w1zard1/Kotor.NET": {
+      "sha": "6dca4a6a1af2fee6e36befb9a6f127c8ba04d3e2",
+      "default_branch": "master",
+      "replaces": ["NickHugi/Kotor.NET"]
+    },
+    "th3w1zard1/TSLPatcher": {
+      "sha": "ad04700a47086c25e1c6ef4b4961f76dfa8cc6a5",
+      "default_branch": "main",
+      "replaces": ["th3w1zard1/TSLPatcher"]
+    },
+    "th3w1zard1/mdlops": {
+      "sha": "7e40846d36acb5118e2e9feb2fd53620c29be540",
+      "default_branch": "master",
+      "replaces": ["th3w1zard1/mdlops"]
+    },
+    "ME3Tweaks/LegendaryExplorer": {
+      "sha": "6928aaf5be0ef97b984e9c51a192db9602aa0e42",
+      "default_branch": "Beta",
+      "replaces": ["ME3Tweaks/LegendaryExplorer"]
+    }
+  }
+}
