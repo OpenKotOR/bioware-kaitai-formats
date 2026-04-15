@@ -3,7 +3,7 @@
 
 import kaitaistruct
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
-from enum import IntEnum
+import bioware_mdl_common
 
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
@@ -20,45 +20,12 @@ class Mdl(KaitaiStruct):
     - Node hierarchy with geometry data
     
     Reference implementations:
-    - https://github.com/th3w1zard1/MDLOpsM.pm
-    - https://github.com/OldRepublicDevs/PyKotor/wiki/MDL-MDX-File-Format.md
+    - https://github.com/th3w1zard1/mdlops/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/MDLOpsM.pm
+    - https://github.com/OpenKotOR/PyKotor/wiki/MDL-MDX-File-Format
     
     .. seealso::
-       Source - https://github.com/th3w1zard1/PyKotor/wiki/MDL-MDX-File-Format.md
+       Source - https://github.com/OpenKotOR/PyKotor/wiki/MDL-MDX-File-Format
     """
-
-    class ControllerType(IntEnum):
-        position = 8
-        orientation = 20
-        scale = 36
-        color = 76
-        radius = 88
-        shadow_radius = 96
-        vertical_displacement_or_drag_or_selfillumcolor = 100
-        alpha = 132
-        multiplier_or_randvel = 140
-
-    class ModelClassification(IntEnum):
-        other = 0
-        effect = 1
-        tile = 2
-        character = 4
-        door = 8
-        lightsaber = 16
-        placeable = 32
-        flyer = 64
-
-    class NodeTypeValue(IntEnum):
-        dummy = 1
-        light = 3
-        emitter = 5
-        reference = 17
-        trimesh = 33
-        skinmesh = 97
-        animmesh = 161
-        danglymesh = 289
-        aabb = 545
-        lightsaber = 2081
     def __init__(self, _io, _parent=None, _root=None):
         super(Mdl, self).__init__(_io)
         self._parent = _parent
@@ -220,7 +187,7 @@ class Mdl(KaitaiStruct):
             self._read()
 
         def _read(self):
-            self.type = self._io.read_u4le()
+            self.type = KaitaiStream.resolve_enum(bioware_mdl_common.BiowareMdlCommon.ControllerType, self._io.read_u4le())
             self.unknown = self._io.read_u2le()
             self.row_count = self._io.read_u2le()
             self.time_index = self._io.read_u2le()
@@ -444,7 +411,7 @@ class Mdl(KaitaiStruct):
 
         def _read(self):
             self.geometry = Mdl.GeometryHeader(self._io, self, self._root)
-            self.model_type = self._io.read_u1()
+            self.model_type = KaitaiStream.resolve_enum(bioware_mdl_common.BiowareMdlCommon.ModelClassification, self._io.read_u1())
             self.unknown0 = self._io.read_u1()
             self.padding0 = self._io.read_u1()
             self.fog = self._io.read_u1()

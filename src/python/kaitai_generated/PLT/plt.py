@@ -3,45 +3,27 @@
 
 import kaitaistruct
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
+import bioware_common
 
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Plt(KaitaiStruct):
-    """PLT (Palette Texture) is a texture format used in Neverwinter Nights that allows runtime color
-    palette selection. Instead of fixed colors, PLT files store palette group indices and color indices
-    that reference external palette files, enabling dynamic color customization for character models
-    (skin, hair, armor colors, etc.).
+    """**PLT** (palette texture, NWN lineage): each pixel is `(palette_group_index, color_index)` into external
+    `.pal` tables — header (24 B) then `width × height` × 2-byte entries.
     
-    **Note**: This format is Neverwinter Nights-specific and is NOT used in KotOR games. While the PLT
-    resource type (0x0006) exists in KotOR's resource system due to shared Aurora engine heritage, KotOR
-    does not load, parse, or use PLT files. KotOR uses standard TPC/TGA/DDS textures for all textures,
-    including character models. This documentation is provided for reference only.
+    **KotOR:** type id `0x0006` exists in Aurora tables, but KotOR does not ship or decode PLT bodies; use TPC/TGA/DDS
+    for in-engine textures. This spec is for NWN-era assets and tooling.
     
-    Binary Format Structure:
-    - Header (24 bytes): Signature, Version, Unknown fields, Width, Height
-    - Pixel Data: Array of 2-byte pixel entries (color index + palette group index)
+    Palette groups 0–9: `formats/Common/bioware_common.ksy` → `bioware_nwn_plt_palette_group_id`. Proof: `meta.xref`.
     
-    Palette System:
-    PLT files work in conjunction with external palette files (.pal files) that contain the actual
-    color values. The PLT file itself stores:
-    1. Palette Group index (0-9): Which palette group to use for each pixel
-    2. Color index (0-255): Which color within the selected palette to use
+    .. seealso::
+       PyKotor wiki — PLT (NWN) - https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#kotor-plt-file-format-documentation-nwn-legacy
     
-    At runtime, the game:
-    1. Loads the appropriate palette file for the selected palette group
-    2. Uses the palette index (supplied by the content creator) to select a row in the palette file
-    3. Uses the color index from the PLT file to retrieve the final color value
     
-    Palette Groups (10 total):
-    0 = Skin, 1 = Hair, 2 = Metal 1, 3 = Metal 2, 4 = Cloth 1, 5 = Cloth 2,
-    6 = Leather 1, 7 = Leather 2, 8 = Tattoo 1, 9 = Tattoo 2
-    
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/wiki/PLT-File-Format.md
-    - https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/plt.html
-    - https://github.com/xoreos/xoreos/blob/master/src/graphics/aurora/pltfile.cpp
+    .. seealso::
+       xoreos — pltfile load - https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/graphics/aurora/pltfile.cpp#L102-L145
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Plt, self).__init__(_io)
@@ -114,7 +96,7 @@ class Plt(KaitaiStruct):
 
         def _read(self):
             self.color_index = self._io.read_u1()
-            self.palette_group_index = self._io.read_u1()
+            self.palette_group_index = KaitaiStream.resolve_enum(bioware_common.BiowareCommon.BiowareNwnPltPaletteGroupId, self._io.read_u1())
 
 
         def _fetch_instances(self):

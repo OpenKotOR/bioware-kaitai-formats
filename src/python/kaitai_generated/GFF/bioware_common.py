@@ -10,21 +10,60 @@ if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class BiowareCommon(KaitaiStruct):
-    """Shared enums and "common objects" used across the BioWare ecosystem that also appear
-    in BioWare/Odyssey binary formats (notably TLK and GFF LocalizedStrings).
+    """Shared enums and structs imported by other BioWare / Odyssey `.ksy` specs (TLK, GFF localized strings, ERF rows,
+    SSF, LIP, TPC, BWM, PLT, PCC, WAV, DDS, LTR, …).
     
-    This file is intended to be imported by other `.ksy` files to avoid repeating:
-    - Language IDs (used in TLK headers and GFF LocalizedString substrings)
-    - Gender IDs (used in GFF LocalizedString substrings)
-    - The CExoLocString / LocalizedString binary layout
+    **Kaitai:** in `repeat-expr` and other raw integers, use `.to_i` on `enum:` attributes
+    ([Kaitai user guide — enums](https://doc.kaitai.io/user_guide.html)).
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/common/language.py
-    - https://github.com/OldRepublicDevs/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/common/misc.py
-    - https://github.com/OldRepublicDevs/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/common/game_object.py
-    - https://github.com/xoreos/xoreos-tools/blob/master/src/common/types.h
-    - https://github.com/seedhartha/reone/blob/master/include/reone/resource/types.h
+    **Contents (see `types` / enums below):** language + gender IDs, `bioware_locstring`, SSF slots (`bioware_ssf_sound_slot`),
+    LIP visemes, TPC pixel encodings, BWM walkmesh kinds / face materials, NWN PLT palette groups, PCC package + codec
+    fields, RIFF `wFormatTag`, headerless DDS BPP variants, LTR alphabet lengths. GFF wire field tags live in
+    `formats/Common/bioware_gff_common.ksy` → `gff_field_type`.
+    
+    Pinned URLs: `meta.xref`.
+    
+    .. seealso::
+       Kaitai Struct — User Guide - https://doc.kaitai.io/user_guide.html
+    
+    
+    .. seealso::
+       PyKotor — common package - https://github.com/th3w1zard1/PyKotor/tree/cfb5bb5070aff80ce9542f6968beb5fa5342bb33/Libraries/PyKotor/src/pykotor/common/
+    
+    
+    .. seealso::
+       xoreos-tools — common/types.h - https://github.com/th3w1zard1/xoreos-tools/blob/9ecd99facb6f3f9a1d4d96c5584add96a5f61800/src/common/types.h
     """
+
+    class BiowareBwmFaceMaterialId(IntEnum):
+        undefined = 0
+        dirt = 1
+        obscuring = 2
+        grass = 3
+        stone = 4
+        wood = 5
+        water = 6
+        nonwalk = 7
+        transparent = 8
+        carpet = 9
+        metal = 10
+        puddles = 11
+        swamp = 12
+        mud = 13
+        leaves = 14
+        lava = 15
+        bottomless_pit = 16
+        deep_water = 17
+        door = 18
+        snow_or_non_walk_grass = 19
+
+    class BiowareBwmWalkmeshKind(IntEnum):
+        placeable_or_door = 0
+        area_wok = 1
+
+    class BiowareDdsVariantBytesPerPixel(IntEnum):
+        dxt1 = 3
+        dxt5 = 4
 
     class BiowareEquipmentSlotFlag(IntEnum):
         invalid = 0
@@ -157,6 +196,40 @@ class BiowareCommon(KaitaiStruct):
         japanese = 131
         unknown = 2147483646
 
+    class BiowareLipVisemeId(IntEnum):
+        neutral = 0
+        ee = 1
+        eh = 2
+        ah = 3
+        oh = 4
+        ooh = 5
+        y = 6
+        sts = 7
+        fv = 8
+        ng = 9
+        th = 10
+        mpb = 11
+        td = 12
+        sh = 13
+        l = 14
+        kg = 15
+
+    class BiowareLtrAlphabetLength(IntEnum):
+        neverwinter_nights = 26
+        kotor = 28
+
+    class BiowareNwnPltPaletteGroupId(IntEnum):
+        skin = 0
+        hair = 1
+        metal1 = 2
+        metal2 = 3
+        cloth1 = 4
+        cloth2 = 5
+        leather1 = 6
+        leather2 = 7
+        tattoo1 = 8
+        tattoo2 = 9
+
     class BiowareObjectTypeId(IntEnum):
         invalid = 0
         creature = 1
@@ -170,6 +243,61 @@ class BiowareCommon(KaitaiStruct):
         area = 9
         sound = 10
         camera = 11
+
+    class BiowarePccCompressionCodec(IntEnum):
+        none = 0
+        zlib = 1
+        lzo = 2
+
+    class BiowarePccPackageKind(IntEnum):
+        normal_package = 0
+        patch_package = 1
+
+    class BiowareSsfSoundSlot(IntEnum):
+        battle_cry_1 = 0
+        battle_cry_2 = 1
+        battle_cry_3 = 2
+        battle_cry_4 = 3
+        battle_cry_5 = 4
+        battle_cry_6 = 5
+        select_1 = 6
+        select_2 = 7
+        select_3 = 8
+        attack_grunt_1 = 9
+        attack_grunt_2 = 10
+        attack_grunt_3 = 11
+        pain_grunt_1 = 12
+        pain_grunt_2 = 13
+        low_health = 14
+        dead = 15
+        critical_hit = 16
+        target_immune = 17
+        lay_mine = 18
+        disarm_mine = 19
+        begin_stealth = 20
+        begin_search = 21
+        begin_unlock = 22
+        unlock_failed = 23
+        unlock_success = 24
+        separated_from_party = 25
+        rejoined_party = 26
+        poisoned = 27
+
+    class BiowareTpcPixelFormatId(IntEnum):
+        greyscale = 1
+        rgb_or_dxt1 = 2
+        rgba_or_dxt5 = 4
+        bgra_xbox_swizzle = 12
+
+    class RiffWaveFormatTag(IntEnum):
+        pcm = 1
+        adpcm_ms = 2
+        ieee_float = 3
+        alaw = 6
+        mulaw = 7
+        dvi_ima_adpcm = 17
+        mpeg_layer3 = 85
+        wave_format_extensible = 65534
     def __init__(self, _io, _parent=None, _root=None):
         super(BiowareCommon, self).__init__(_io)
         self._parent = _parent
@@ -227,7 +355,7 @@ class BiowareCommon(KaitaiStruct):
         
         Do not confuse this embedded `string_ref` with GFF field type 18 ("StrRef"): that is a separate
         top-level GFF field type stored inline on the field record (see formats/GFF/GFF.ksy enum
-        `gff_field_type.str_ref` and PyKotor wiki GFF-File-Format.md).
+        `bioware_gff_common::gff_field_type::str_ref` and PyKotor wiki GFF-File-Format.md).
         """
         def __init__(self, _io, _parent=None, _root=None):
             super(BiowareCommon.BiowareLocstring, self).__init__(_io)

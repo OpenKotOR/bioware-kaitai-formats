@@ -9,20 +9,21 @@ if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class GffXml(KaitaiStruct):
-    """GFF XML format is a human-readable XML representation of GFF (Generic File Format) binary files.
-    Used by xoreos-tools and other modding tools for easier editing than binary GFF format.
+    """**GFF XML** (tooling interchange): UTF-8 XML projection of **binary GFF3** data — retail games read **binary**
+    GFF; this format is for editors, converters, and diffs. Root tag is typically **`gff3`** with nested `<struct>` /
+    `<list>` / typed scalar tags matching PyKotor `io_gff_xml.py`.
     
-    The XML format represents the hierarchical GFF structure using XML elements:
-    - Root element: <gff3>
-    - Contains a <struct> element with id attribute
-    - Struct contains field elements (byte, uint32, exostring, locstring, resref, list, etc.)
-    - Each field has a label attribute
-    - Lists contain nested <struct> elements
+    This `.ksy` stores the document as one opaque UTF-8 string — validate with a real XML parser.
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/gff/io_gff_xml.py
-    - https://github.com/xoreos/xoreos-tools/blob/master/src/xml/gffdumper.cpp
-    - https://github.com/xoreos/xoreos-tools/blob/master/src/xml/gffcreator.cpp
+    PyKotor reader/writer + xoreos-tools `gffdumper` / `gffcreator`: `meta.xref`. K-GFF editor history (vector/orientation
+    pitfalls for `.git` / `.ifo`): `meta.xref` `legacy_k_gff_*`.
+    
+    .. seealso::
+       PyKotor wiki — GFF (binary + tooling context) - https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format
+    
+    
+    .. seealso::
+       PyKotor — GFFXMLReader / Writer - https://github.com/th3w1zard1/PyKotor/blob/cfb5bb5070aff80ce9542f6968beb5fa5342bb33/Libraries/PyKotor/src/pykotor/resource/formats/gff/io_gff_xml.py#L37-L188
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(GffXml, self).__init__(_io)

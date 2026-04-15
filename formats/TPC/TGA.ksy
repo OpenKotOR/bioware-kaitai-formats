@@ -6,25 +6,27 @@ meta:
   file-extension:
     - tga
     - targa
+  imports:
+    - ../Common/tga_common
   xref:
-    ghidra_odyssey_k1:
-      note: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: TGA sources often converted to TPC for in-game use."
-    pykotor_wiki_tpc: https://github.com/OldRepublicDevs/PyKotor/wiki/TPC-File-Format.md
+    ghidra_odyssey_k1: |
+      Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: TGA sources often converted to TPC for in-game use.
+    pykotor_wiki_tpc: https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#tpc
+    xoreos: https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/graphics/images/tga.cpp
+    xoreos_types_kfiletype_tga: https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/aurora/types.h#L61
+    xoreos_tga_load: https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/graphics/images/tga.cpp#L75-L87
+    xoreos_tga_read_header: https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/graphics/images/tga.cpp#L89-L177
+    tga_common_enums: |
+      Header `color_map_type` / `image_type`: `formats/Common/tga_common.ksy` → `tga_color_map_type`, `tga_image_type`.
 doc: |
-  TGA (Targa) is an uncompressed raster image format used in KotOR for textures.
-  TGA files support RGB, RGBA, and greyscale formats with optional RLE compression.
-  
-  TGA files are commonly converted to TPC format for use in KotOR, but the game
-  can also load TGA files directly in some contexts.
-  
-  Format Structure:
-  - Header (18 bytes): Image metadata, dimensions, pixel format
-  - Color Map (optional): Palette data for indexed color images
-  - Image Data: Raw or RLE-compressed pixel data
-  
-  References:
-  - https://github.com/OldRepublicDevs/PyKotor/wiki/TPC-File-Format.md - TGA conversion to TPC
-  - Standard TGA format specification
+  **TGA** (Truevision Targa): 18-byte header, optional color map, image id, then raw or RLE pixels. KotOR often
+  converts authoring TGAs to **TPC** for shipping.
+
+  Shared header enums: `formats/Common/tga_common.ksy`.
+
+doc-ref:
+  - "https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#tpc PyKotor wiki — textures (TPC/TGA pipeline)"
+  - "https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/graphics/images/tga.cpp#L89-L177 xoreos — TGA::readHeader"
 
 seq:
   - id: id_length
@@ -34,27 +36,18 @@ seq:
   - id: color_map_type
     type: u1
     doc: |
-      Color map type:
-      - 0 = No color map
-      - 1 = Color map present
-    enum: color_map_type
+      Color map type (`u1`). Canonical: `formats/Common/tga_common.ksy` → `tga_color_map_type`.
+    enum: tga_common::tga_color_map_type
   
   - id: image_type
     type: u1
     doc: |
-      Image type:
-      - 0 = No image data
-      - 1 = Uncompressed color-mapped
-      - 2 = Uncompressed RGB
-      - 3 = Uncompressed greyscale
-      - 9 = RLE color-mapped
-      - 10 = RLE RGB
-      - 11 = RLE greyscale
-    enum: image_type
+      Image type / compression (`u1`). Canonical: `formats/Common/tga_common.ksy` → `tga_image_type`.
+    enum: tga_common::tga_image_type
   
   - id: color_map_spec
     type: color_map_specification
-    if: color_map_type == color_map_type::present
+    if: 'color_map_type == tga_common::tga_color_map_type::present'
     doc: Color map specification (only present if color_map_type == present)
   
   - id: image_spec
@@ -72,7 +65,7 @@ seq:
     type: u1
     repeat: expr
     repeat-expr: color_map_spec.length
-    if: color_map_type == color_map_type::present
+    if: 'color_map_type == tga_common::tga_color_map_type::present'
     doc: Color map data (palette entries)
   
   - id: image_data
@@ -125,7 +118,7 @@ types:
           - 16 = RGB 5-5-5 or RGBA 1-5-5-5
           - 24 = RGB
           - 32 = RGBA
-      
+
       - id: image_descriptor
         type: u1
         doc: |
@@ -134,17 +127,3 @@ types:
           - Bit 4: Reserved
           - Bit 5: Screen origin (0 = bottom-left, 1 = top-left)
           - Bits 6-7: Interleaving (usually 0)
-
-enums:
-  color_map_type:
-    0: none
-    1: present
-  
-  image_type:
-    0: no_image_data
-    1: uncompressed_color_mapped
-    2: uncompressed_rgb
-    3: uncompressed_greyscale
-    9: rle_color_mapped
-    10: rle_rgb
-    11: rle_greyscale

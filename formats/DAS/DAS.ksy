@@ -9,22 +9,11 @@ meta:
       note: "Dragon Age: Origins save format (daorigins.exe in Odyssey), not KotOR k1_win_gog_swkotor.exe."
     runtime: src/Andastra/Runtime/Games/Eclipse/DragonAgeOrigins/Save/DragonAgeOriginsSaveSerializer.cs
 doc: |
-  DAS (Dragon Age: Origins Save) files are binary save game files used by the Eclipse Engine
-  (Dragon Age: Origins). They contain save game metadata and optionally full game state.
-  
-  DAS files are binary format files with the following structure:
-  - Signature (4 bytes): "DAS " (Dragon Age Save)
-  - Version (int32): Save format version (1 for DA:O)
-  - Metadata fields (strings, integers, timestamps, etc.)
-  - Optional: Full game state (party, inventory, journal, globals)
-  
-  Based on daorigins.exe: SaveGameMessage @ 0x00ae6276, COMMAND_SAVEGAME @ 0x00af15d4
-  Located via string references: "SaveGameMessage" @ 0x00ae6276, "COMMAND_SAVEGAME" @ 0x00af15d4
-  Original implementation: UnrealScript message-based save system, binary serialization
-  
-  References:
-  - src/Andastra/Runtime/Games/Eclipse/DragonAgeOrigins/Save/DragonAgeOriginsSaveSerializer.cs
-  - src/Andastra/Runtime/Games/Eclipse/Save/EclipseSaveSerializer.cs (base class)
+  **DAS** (Dragon Age: Origins save): Eclipse binary save — `DAS ` signature, `version==1`, length-prefixed strings +
+  tagged blocks. **Not KotOR** — Andastra serializer paths + numeric `xoreos_game_id` live in `meta.xref`.
+
+doc-ref:
+  - "https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/aurora/types.h#L396-L408 xoreos — game id enum (Dragon Age = 7)"
 
 seq:
   - id: signature

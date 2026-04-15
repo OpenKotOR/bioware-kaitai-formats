@@ -3,27 +3,23 @@
 
 import kaitaistruct
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
+import bioware_common
 
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Ltr(KaitaiStruct):
-    """LTR (Letter) resources store third-order Markov chain probability tables that the game uses
-    to procedurally generate NPC names. The data encodes likelihoods for characters appearing at
-    the start, middle, and end of names given zero, one, or two-character context.
+    """**LTR** (letter / Markov name tables): header + three float blobs (single / double / triple letter statistics).
+    `letter_count` is **26** (NWN) vs **28** (KotOR `a-z` + `'` + `-`) — decode via `bioware_ltr_alphabet_length` in
+    `bioware_common.ksy`. Use `.to_i` on that enum inside `valid`/`repeat-expr` (see Kaitai user guide: enums).
     
-    KotOR always uses the 28-character alphabet (a-z plus ' and -). Neverwinter Nights (NWN) used
-    26 characters; the header explicitly stores the count. This is a KotOR-specific difference from NWN.
+    .. seealso::
+       PyKotor wiki — LTR - https://github.com/OpenKotOR/PyKotor/wiki/LTR-File-Format
     
-    LTR files are binary and consist of a short header followed by three probability tables
-    (singles, doubles, triples) stored as contiguous float arrays.
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/wiki/LTR-File-Format.md
-    - https://github.com/seedhartha/reone/blob/master/src/libs/resource/format/ltrreader.cpp:27-74
-    - https://github.com/xoreos/xoreos/blob/master/src/aurora/ltrfile.cpp:135-168
-    - https://github.com/KotOR-Community-Patches/KotOR.js/blob/master/src/resource/LTRObject.ts:61-117
+    .. seealso::
+       xoreos — LTR::load - https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/aurora/ltrfile.cpp#L135-L168
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Ltr, self).__init__(_io)
@@ -34,7 +30,7 @@ class Ltr(KaitaiStruct):
     def _read(self):
         self.file_type = (self._io.read_bytes(4)).decode(u"ASCII")
         self.file_version = (self._io.read_bytes(4)).decode(u"ASCII")
-        self.letter_count = self._io.read_u1()
+        self.letter_count = KaitaiStream.resolve_enum(bioware_common.BiowareCommon.BiowareLtrAlphabetLength, self._io.read_u1())
         self.single_letter_block = Ltr.LetterBlock(self._io, self, self._root)
         self.double_letter_blocks = Ltr.DoubleLetterBlocksArray(self._io, self, self._root)
         self.triple_letter_blocks = Ltr.TripleLetterBlocksArray(self._io, self, self._root)
@@ -58,7 +54,7 @@ class Ltr(KaitaiStruct):
 
         def _read(self):
             self.blocks = []
-            for i in range(self._root.letter_count):
+            for i in range(int(self._root.letter_count)):
                 self.blocks.append(Ltr.LetterBlock(self._io, self, self._root))
 
 
@@ -87,15 +83,15 @@ class Ltr(KaitaiStruct):
 
         def _read(self):
             self.start_probabilities = []
-            for i in range(self._root.letter_count):
+            for i in range(int(self._root.letter_count)):
                 self.start_probabilities.append(self._io.read_f4le())
 
             self.middle_probabilities = []
-            for i in range(self._root.letter_count):
+            for i in range(int(self._root.letter_count)):
                 self.middle_probabilities.append(self._io.read_f4le())
 
             self.end_probabilities = []
-            for i in range(self._root.letter_count):
+            for i in range(int(self._root.letter_count)):
                 self.end_probabilities.append(self._io.read_f4le())
 
 
@@ -125,7 +121,7 @@ class Ltr(KaitaiStruct):
 
         def _read(self):
             self.rows = []
-            for i in range(self._root.letter_count):
+            for i in range(int(self._root.letter_count)):
                 self.rows.append(Ltr.TripleLetterRow(self._io, self, self._root))
 
 
@@ -150,7 +146,7 @@ class Ltr(KaitaiStruct):
 
         def _read(self):
             self.blocks = []
-            for i in range(self._root.letter_count):
+            for i in range(int(self._root.letter_count)):
                 self.blocks.append(Ltr.LetterBlock(self._io, self, self._root))
 
 

@@ -4,22 +4,29 @@ meta:
   license: MIT
   endian: le
   file-extension: dds
+  imports:
+    - ../Common/bioware_common
   xref:
-    ghidra_odyssey_k1:
-      note: "Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: DDS payloads embedded or standalone per DirectX / PyKotor wiki."
-    pykotor: https://github.com/OldRepublicDevs/PyKotor/wiki/DDS-File-Format.md
+    ghidra_odyssey_k1: |
+      Odyssey Ghidra /K1/k1_win_gog_swkotor.exe: DDS payloads embedded or standalone per DirectX / PyKotor wiki.
+    pykotor_wiki_dds: https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#dds
+    pykotor_io_dds_reader: https://github.com/th3w1zard1/PyKotor/blob/cfb5bb5070aff80ce9542f6968beb5fa5342bb33/Libraries/PyKotor/src/pykotor/resource/formats/tpc/io_dds.py#L50-L130
+    xoreos_tools_dds: https://github.com/th3w1zard1/xoreos-tools/blob/9ecd99facb6f3f9a1d4d96c5584add96a5f61800/src/images/dds.cpp#L69-L158
+    xoreos: https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/graphics/images/dds.cpp
+    xoreos_types_kfiletype_dds: https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/aurora/types.h#L98
+    xoreos_dds_load: https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/graphics/images/dds.cpp#L55-L67
+    xoreos_dds_read_bioware_header: https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/graphics/images/dds.cpp#L141-L210
+    bioware_common_dds_variant_bpp: |
+      `bioware_dds_header.bytes_per_pixel`: `formats/Common/bioware_common.ksy` → `bioware_dds_variant_bytes_per_pixel`.
 doc: |
-  DDS (DirectDraw Surface) files appear in two variants in KotOR:
-  
-  1. Standard DirectX DDS: Header magic "DDS " (0x44445320), 124-byte header
-  2. BioWare DDS variant: No magic; width/height/bpp/dataSize leading integers
-  
-  DDS files support DXT1/DXT3/DXT5 block compression, uncompressed RGB/RGBA,
-  and various other pixel formats. They can include mipmaps and cube maps.
-  
-  References:
-  - https://github.com/OldRepublicDevs/PyKotor/wiki/DDS-File-Format.md - Complete DDS format documentation
-  - Standard DirectX DDS format specification
+  **DDS** in KotOR: either standard **DirectX** `DDS ` + 124-byte `DDS_HEADER`, or a **BioWare headerless** prefix
+  (`width`, `height`, `bytes_per_pixel`, `data_size`) before DXT/RGBA bytes. DXT mips / cube faces follow usual DDS rules.
+
+  BioWare BPP enum: `bioware_dds_variant_bytes_per_pixel` in `bioware_common.ksy`.
+
+doc-ref:
+  - "https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#dds PyKotor wiki — DDS"
+  - "https://github.com/th3w1zard1/PyKotor/blob/cfb5bb5070aff80ce9542f6968beb5fa5342bb33/Libraries/PyKotor/src/pykotor/resource/formats/tpc/io_dds.py#L50-L130 PyKotor — TPCDDSReader"
 
 seq:
   - id: magic
@@ -45,12 +52,11 @@ seq:
     doc: BioWare DDS variant header - only present if magic is not "DDS "
   
   - id: pixel_data
-    type: u1
-    repeat: eos
+    size-eos: true
     doc: |
-      Pixel data (compressed or uncompressed).
-      For standard DDS: Format determined by DDPIXELFORMAT
-      For BioWare DDS: DXT1 or DXT5 compressed data
+      Pixel data (compressed or uncompressed); single blob to EOF.
+      For standard DDS: format determined by DDPIXELFORMAT.
+      For BioWare DDS: DXT1 or DXT5 compressed data.
 
 types:
   dds_header:
@@ -187,10 +193,9 @@ types:
       
       - id: bytes_per_pixel
         type: u4
+        enum: bioware_common::bioware_dds_variant_bytes_per_pixel
         doc: |
-          Bytes per pixel:
-          - 3 = DXT1 compression
-          - 4 = DXT5 compression
+          BioWare variant “bytes per pixel” (`u4`): DXT1 vs DXT5 block stride hint. Canonical: `formats/Common/bioware_common.ksy` → `bioware_dds_variant_bytes_per_pixel`.
       
       - id: data_size
         type: u4

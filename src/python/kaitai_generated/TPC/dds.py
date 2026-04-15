@@ -3,23 +3,24 @@
 
 import kaitaistruct
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
+import bioware_common
 
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Dds(KaitaiStruct):
-    """DDS (DirectDraw Surface) files appear in two variants in KotOR:
+    """**DDS** in KotOR: either standard **DirectX** `DDS ` + 124-byte `DDS_HEADER`, or a **BioWare headerless** prefix
+    (`width`, `height`, `bytes_per_pixel`, `data_size`) before DXT/RGBA bytes. DXT mips / cube faces follow usual DDS rules.
     
-    1. Standard DirectX DDS: Header magic "DDS " (0x44445320), 124-byte header
-    2. BioWare DDS variant: No magic; width/height/bpp/dataSize leading integers
+    BioWare BPP enum: `bioware_dds_variant_bytes_per_pixel` in `bioware_common.ksy`.
     
-    DDS files support DXT1/DXT3/DXT5 block compression, uncompressed RGB/RGBA,
-    and various other pixel formats. They can include mipmaps and cube maps.
+    .. seealso::
+       PyKotor wiki — DDS - https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#dds
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/wiki/DDS-File-Format.md - Complete DDS format documentation
-    - Standard DirectX DDS format specification
+    
+    .. seealso::
+       PyKotor — TPCDDSReader - https://github.com/th3w1zard1/PyKotor/blob/cfb5bb5070aff80ce9542f6968beb5fa5342bb33/Libraries/PyKotor/src/pykotor/resource/formats/tpc/io_dds.py#L50-L130
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Dds, self).__init__(_io)
@@ -63,7 +64,7 @@ class Dds(KaitaiStruct):
         def _read(self):
             self.width = self._io.read_u4le()
             self.height = self._io.read_u4le()
-            self.bytes_per_pixel = self._io.read_u4le()
+            self.bytes_per_pixel = KaitaiStream.resolve_enum(bioware_common.BiowareCommon.BiowareDdsVariantBytesPerPixel, self._io.read_u4le())
             self.data_size = self._io.read_u4le()
             self.unused_float = self._io.read_f4le()
 

@@ -3,34 +3,27 @@
 
 import kaitaistruct
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
+import bioware_common
 
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Tlk(KaitaiStruct):
-    """TLK (Talk Table) files contain all text strings used in the game, both written and spoken.
-    They enable easy localization by providing a lookup table from string reference numbers (StrRef)
-    to localized text and associated voice-over audio files.
+    """**TLK** (talk table): localized string + VO metadata. **V3.0 wire (this file):** 20-byte header, fixed 40-byte
+    per-row `string_data_table`, then a string heap from `entries_offset`. **StrRef** = 0-based index into the data
+    table (`-1` sentinel where applicable).
     
-    Binary Format Structure:
-    - File Header (20 bytes): File type signature, version, language ID, string count, entries offset
-    - String Data Table (40 bytes per entry): Metadata for each string entry (flags, sound ResRef, offsets, lengths)
-    - String Entries (variable size): Sequential null-terminated text strings starting at entries_offset
+    Dragon Age / Eclipse may use **GFF4** talk tables instead of this header — see `meta.xref.xoreos_talktable_gff_note`.
     
-    The format uses a two-level structure:
-    1. String Data Table: Contains metadata (flags, sound filename, text offset/length) for each entry
-    2. String Entries: Actual text data stored sequentially, referenced by offsets in the data table
+    Pinned readers: `meta.xref`.
     
-    String references (StrRef) are 0-based indices into the string_data_table array. StrRef 0 refers to
-    the first entry, StrRef 1 to the second, etc. StrRef -1 indicates no string reference.
+    .. seealso::
+       PyKotor wiki — TLK - https://github.com/OpenKotOR/PyKotor/wiki/Audio-and-Localization-Formats#tlk
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/wiki/TLK-File-Format.md
-    - https://github.com/seedhartha/reone/blob/master/src/libs/resource/format/tlkreader.cpp:31-84
-    - https://github.com/xoreos/xoreos/blob/master/src/aurora/talktable.cpp:42-176
-    - https://github.com/TSLPatcher/TSLPatcher/blob/master/lib/site/Bioware/TLK.pm:1-533
-    - https://github.com/KotOR-Community-Patches/Kotor.NET/blob/master/Kotor.NET/Formats/KotorTLK/TLKBinaryStructure.cs:11-132
+    
+    .. seealso::
+       xoreos — TLK v3 load - https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/aurora/talktable_tlk.cpp#L57-L92
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Tlk, self).__init__(_io)
@@ -189,7 +182,7 @@ class Tlk(KaitaiStruct):
         def _read(self):
             self.file_type = (self._io.read_bytes(4)).decode(u"ASCII")
             self.file_version = (self._io.read_bytes(4)).decode(u"ASCII")
-            self.language_id = self._io.read_u4le()
+            self.language_id = KaitaiStream.resolve_enum(bioware_common.BiowareCommon.BiowareLanguageId, self._io.read_u4le())
             self.string_count = self._io.read_u4le()
             self.entries_offset = self._io.read_u4le()
 

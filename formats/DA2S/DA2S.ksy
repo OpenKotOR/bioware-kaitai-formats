@@ -9,23 +9,11 @@ meta:
       note: "Dragon Age 2 save format (DragonAge2.exe in Odyssey), not KotOR k1_win_gog_swkotor.exe."
     runtime: src/Andastra/Runtime/Games/Eclipse/DragonAge2/Save/DragonAge2SaveSerializer.cs
 doc: |
-  DA2S (Dragon Age 2 Save) files are binary save game files used by the Eclipse Engine
-  (Dragon Age 2). They contain save game metadata and optionally full game state.
-  
-  DA2S files are binary format files with the following structure:
-  - Signature (4 bytes): "DA2S" (Dragon Age 2 Save)
-  - Version (int32): Save format version (1 for DA2)
-  - Metadata fields (strings, integers, timestamps, etc.)
-  - Optional: Full game state (party, inventory, journal, globals)
-  
-  Based on DragonAge2.exe: SaveGameMessage @ 0x00be37a8, DeleteSaveGameMessage @ 0x00be389c
-  Located via string references: "SaveGameMessage" @ 0x00be37a8, "GameModeController::HandleMessage(SaveGameMessage)" @ 0x00d2b330
-  Original implementation: UnrealScript message-based save system, binary serialization
-  Note: DA2 save format may differ from DA:O format (different game engine version)
-  
-  References:
-  - src/Andastra/Runtime/Games/Eclipse/DragonAge2/Save/DragonAge2SaveSerializer.cs
-  - src/Andastra/Runtime/Games/Eclipse/Save/EclipseSaveSerializer.cs (base class)
+  **DA2S** (Dragon Age 2 save): Eclipse binary save — `DA2S` signature, `version==1`, length-prefixed strings + tagged
+  blocks (party/inventory/journal/etc.). **Not KotOR** — see `meta.xref` for Andastra serializer paths + `xoreos_game_id`.
+
+doc-ref:
+  - "https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/aurora/types.h#L396-L408 xoreos — game id enum (Dragon Age 2 = 8)"
 
 seq:
   - id: signature

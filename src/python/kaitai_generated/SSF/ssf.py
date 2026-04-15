@@ -9,39 +9,18 @@ if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Ssf(KaitaiStruct):
-    """SSF (Sound Set File) files store sound string references (StrRefs) for character voice sets.
-    Each SSF file contains exactly 28 sound slots, mapping to different game events and actions.
+    """**SSF** (sound set): 28 StrRef slots for a voice set. **Wire:** `SSF ` + `V1.1` header (12 B) → `sounds_offset`
+    (usually 12) → 28×`u4` (`0xFFFFFFFF` = empty). Many vanilla files append a 12-byte `0xFF` trailer — not modeled.
     
-    Binary Format:
-    - Header (12 bytes): File type signature, version, and offset to sounds array (usually 12)
-    - Sounds Array (112 bytes at sounds_offset): 28 uint32 values representing StrRefs (0xFFFFFFFF = -1 = no sound)
+    Row indices map through `bioware_ssf_sound_slot` in `formats/Common/bioware_common.ksy` (Kaitai cannot attach imported
+    enums to `repeat` indices here).
     
-    Vanilla KotOR SSFs are typically 136 bytes total: after the 28 StrRefs, many files append 12 bytes
-    of 0xFFFFFFFF padding; that trailer is not part of the header and is not modeled here.
+    .. seealso::
+       PyKotor wiki — SSF - https://github.com/OpenKotOR/PyKotor/wiki/Audio-and-Localization-Formats#ssf
     
-    Sound Slots (in order):
-    0-5: Battle Cry 1-6
-    6-8: Select 1-3
-    9-11: Attack Grunt 1-3
-    12-13: Pain Grunt 1-2
-    14: Low Health
-    15: Dead
-    16: Critical Hit
-    17: Target Immune
-    18: Lay Mine
-    19: Disarm Mine
-    20: Begin Stealth
-    21: Begin Search
-    22: Begin Unlock
-    23: Unlock Failed
-    24: Unlock Success
-    25: Separated From Party
-    26: Rejoined Party
-    27: Poisoned
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/ssf/ssf_binary_reader.py
-    - https://github.com/OldRepublicDevs/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/ssf/ssf_binary_writer.py
+    .. seealso::
+       xoreos — SSF::load - https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/aurora/ssffile.cpp#L72-L85
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Ssf, self).__init__(_io)

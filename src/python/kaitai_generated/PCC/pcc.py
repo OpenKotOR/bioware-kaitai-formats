@@ -3,29 +3,20 @@
 
 import kaitaistruct
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
+import bioware_common
 
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Pcc(KaitaiStruct):
-    """PCC (Package) files are BioWare's proprietary version of Unreal Engine package files.
-    They store game resources including textures, meshes, materials, scripts, and more.
+    """**PCC** (Mass Effect–era Unreal package): BioWare variant of UE packages — `file_header`, name/import/export
+    tables, then export blobs. May be zlib/LZO chunked (`bioware_pcc_compression_codec` in `bioware_common`).
     
-    PCC files can be either compressed or uncompressed:
-    - Uncompressed: Direct structure with header, tables, and data
-    - Compressed: Chunks containing compressed blocks using zlib or LZO
+    **Not KotOR:** no `k1_win_gog_swkotor.exe` grounding — follow LegendaryExplorer wiki + `meta.xref`.
     
-    The file structure consists of:
-    1. File Header - Contains magic number, version, table offsets, and metadata
-    2. Name Table - Contains all string names used in the package
-    3. Import Table - Contains references to external packages/classes
-    4. Export Table - Contains all objects stored in the package
-    5. Export Data - Raw binary data for each export
-    
-    References:
-    - https://me3explorer.fandom.com/wiki/PCC_File_Format
-    - Unreal Engine package format (BioWare variant)
+    .. seealso::
+       ME3Tweaks — PCC file format - https://github.com/ME3Tweaks/LegendaryExplorer/wiki/PCC-File-Format
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Pcc, self).__init__(_io)
@@ -74,13 +65,13 @@ class Pcc(KaitaiStruct):
             self.data_size = self._io.read_u4le()
             self.data_offset = self._io.read_u4le()
             self.unknown1 = self._io.read_u4le()
-            self.component_count = self._io.read_s4le()
+            self.num_components = self._io.read_s4le()
             self.unknown2 = self._io.read_u4le()
             self.guid = Pcc.Guid(self._io, self, self._root)
-            if self.component_count > 0:
+            if self.num_components > 0:
                 pass
                 self.components = []
-                for i in range(self.component_count):
+                for i in range(self.num_components):
                     self.components.append(self._io.read_s4le())
 
 
@@ -89,7 +80,7 @@ class Pcc(KaitaiStruct):
         def _fetch_instances(self):
             pass
             self.guid._fetch_instances()
-            if self.component_count > 0:
+            if self.num_components > 0:
                 pass
                 for i in range(len(self.components)):
                     pass
@@ -135,7 +126,7 @@ class Pcc(KaitaiStruct):
             self.header_size = self._io.read_s4le()
             self.package_name = (self._io.read_bytes(10)).decode(u"UTF-16LE")
             self.package_flags = self._io.read_u4le()
-            self.package_type = self._io.read_u4le()
+            self.package_type = KaitaiStream.resolve_enum(bioware_common.BiowareCommon.BiowarePccPackageKind, self._io.read_u4le())
             self.name_count = self._io.read_u4le()
             self.name_table_offset = self._io.read_u4le()
             self.export_count = self._io.read_u4le()
@@ -156,7 +147,7 @@ class Pcc(KaitaiStruct):
             self.cooker_version = self._io.read_u4le()
             self.compression_flags = self._io.read_u4le()
             self.package_source = self._io.read_u4le()
-            self.compression_type = self._io.read_u4le()
+            self.compression_type = KaitaiStream.resolve_enum(bioware_common.BiowareCommon.BiowarePccCompressionCodec, self._io.read_u4le())
             self.chunk_count = self._io.read_u4le()
 
 

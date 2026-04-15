@@ -9,23 +9,11 @@ if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Da2s(KaitaiStruct):
-    """DA2S (Dragon Age 2 Save) files are binary save game files used by the Eclipse Engine
-    (Dragon Age 2). They contain save game metadata and optionally full game state.
+    """**DA2S** (Dragon Age 2 save): Eclipse binary save — `DA2S` signature, `version==1`, length-prefixed strings + tagged
+    blocks (party/inventory/journal/etc.). **Not KotOR** — see `meta.xref` for Andastra serializer paths + `xoreos_game_id`.
     
-    DA2S files are binary format files with the following structure:
-    - Signature (4 bytes): "DA2S" (Dragon Age 2 Save)
-    - Version (int32): Save format version (1 for DA2)
-    - Metadata fields (strings, integers, timestamps, etc.)
-    - Optional: Full game state (party, inventory, journal, globals)
-    
-    Based on DragonAge2.exe: SaveGameMessage @ 0x00be37a8, DeleteSaveGameMessage @ 0x00be389c
-    Located via string references: "SaveGameMessage" @ 0x00be37a8, "GameModeController::HandleMessage(SaveGameMessage)" @ 0x00d2b330
-    Original implementation: UnrealScript message-based save system, binary serialization
-    Note: DA2 save format may differ from DA:O format (different game engine version)
-    
-    References:
-    - src/Andastra/Runtime/Games/Eclipse/DragonAge2/Save/DragonAge2SaveSerializer.cs
-    - src/Andastra/Runtime/Games/Eclipse/Save/EclipseSaveSerializer.cs (base class)
+    .. seealso::
+       xoreos — game id enum (Dragon Age 2 = 8) - https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/aurora/types.h#L396-L408
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Da2s, self).__init__(_io)
@@ -45,19 +33,19 @@ class Da2s(KaitaiStruct):
         self.area_name = Da2s.LengthPrefixedString(self._io, self, self._root)
         self.time_played_seconds = self._io.read_s4le()
         self.timestamp_filetime = self._io.read_s8le()
-        self.screenshot_length = self._io.read_s4le()
-        if self.screenshot_length > 0:
+        self.num_screenshot_data = self._io.read_s4le()
+        if self.num_screenshot_data > 0:
             pass
             self.screenshot_data = []
-            for i in range(self.screenshot_length):
+            for i in range(self.num_screenshot_data):
                 self.screenshot_data.append(self._io.read_u1())
 
 
-        self.portrait_length = self._io.read_s4le()
-        if self.portrait_length > 0:
+        self.num_portrait_data = self._io.read_s4le()
+        if self.num_portrait_data > 0:
             pass
             self.portrait_data = []
-            for i in range(self.portrait_length):
+            for i in range(self.num_portrait_data):
                 self.portrait_data.append(self._io.read_u1())
 
 
@@ -71,13 +59,13 @@ class Da2s(KaitaiStruct):
         self.save_name._fetch_instances()
         self.module_name._fetch_instances()
         self.area_name._fetch_instances()
-        if self.screenshot_length > 0:
+        if self.num_screenshot_data > 0:
             pass
             for i in range(len(self.screenshot_data)):
                 pass
 
 
-        if self.portrait_length > 0:
+        if self.num_portrait_data > 0:
             pass
             for i in range(len(self.portrait_data)):
                 pass

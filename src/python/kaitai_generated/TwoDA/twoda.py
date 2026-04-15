@@ -9,29 +9,19 @@ if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Twoda(KaitaiStruct):
-    """TwoDA (2D Array) files store tabular data in a binary format used by BioWare games
-    including Knights of the Old Republic (KotOR) and The Sith Lords (TSL).
+    """**TwoDA** (`.2da`): BioWare binary table — magic `2DA ` + `V2.b` line, tabbed column header row, `u4` row count,
+    tabbed row labels, `u16` cell offset grid, `u16` data blob size, then deduped null-terminated cell strings.
     
-    TwoDA files are essentially two-dimensional arrays (tables) with:
-    - Column headers (first row defines column names)
-    - Row labels (first column defines row identifiers)
-    - Cell values (data at row/column intersections)
+    `column_count` is a **parameter** (Kaitai cannot derive it from the header blob); callers pre-scan tabs like PyKotor.
     
-    Binary Format Structure:
-    - File Header (9 bytes): Magic "2DA " (space-padded), version "V2.b", and newline
-    - Column Headers Section: Tab-separated column names, terminated by null byte
-    - Row Count (4 bytes): uint32 indicating number of data rows
-    - Row Labels Section: Tab-separated row labels (one per row)
-    - Cell Offsets Array: Array of uint16 offsets (rowCount * columnCount entries)
-    - Data Size (2 bytes): uint16 indicating total size of cell data section
-    - Cell Values Section: Null-terminated strings at offsets specified in offsets array
+    Readers / GDA cousin: `meta.xref`.
     
-    The format uses an offset-based string table for cell values, allowing efficient
-    storage of duplicate values (shared strings are stored once and referenced by offset).
+    .. seealso::
+       PyKotor wiki — TwoDA - https://github.com/OpenKotOR/PyKotor/wiki/2DA-File-Format
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/twoda/io_twoda.py
-    - https://github.com/OldRepublicDevs/PyKotor/tree/master/Libraries/PyKotor/src/pykotor/resource/formats/twoda/twoda_data.py
+    
+    .. seealso::
+       xoreos — TwoDA::load - https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/aurora/2dafile.cpp#L145-L172
     """
     def __init__(self, column_count, _io, _parent=None, _root=None):
         super(Twoda, self).__init__(_io)

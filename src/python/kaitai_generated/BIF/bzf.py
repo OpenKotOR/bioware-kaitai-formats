@@ -9,19 +9,11 @@ if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Bzf(KaitaiStruct):
-    """BZF (BioWare Zipped File) files are LZMA-compressed BIF files used primarily in iOS
-    (and maybe Android) ports of KotOR. The BZF header contains "BZF " + "V1.0", followed
-    by LZMA-compressed BIF data. Decompression reveals a standard BIF structure.
+    """**BZF**: `BZF ` + `V1.0` header, then **LZMA** payload that expands to a normal **BIF** (`BIF.ksy`). Common on
+    mobile KotOR ports.
     
-    Format Structure:
-    - Header (8 bytes): File type signature "BZF " and version "V1.0"
-    - Compressed Data: LZMA-compressed BIF file data
-    
-    After decompression, the data follows the standard BIF format structure.
-    
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/wiki/BIF-File-Format.md - BZF compression section
-    - BIF.ksy - Standard BIF format (decompressed BZF data matches this)
+    .. seealso::
+       PyKotor wiki — BZF (LZMA BIF) - https://github.com/OpenKotOR/PyKotor/wiki/Container-Formats#bzf-compression
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Bzf, self).__init__(_io)

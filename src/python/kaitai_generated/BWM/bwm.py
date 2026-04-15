@@ -3,42 +3,25 @@
 
 import kaitaistruct
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
+import bioware_common
 
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Bwm(KaitaiStruct):
-    """BWM (Binary WalkMesh) files define walkable surfaces for pathfinding and collision detection
-    in Knights of the Old Republic (KotOR) games. BWM files are stored on disk with different
-    extensions depending on their type:
+    """**BWM** (binary walkmesh): KotOR pathfinding / collision for `.wok` (area, `walkmesh_type=1`) vs `.pwk`/`.dwk`
+    (placeable/door, `walkmesh_type=0`). Magic `BWM ` + `V1.0`, 52-byte properties, 84-byte offset/count table, then
+    vertices, faces, materials; WOK adds normals, planes, AABB tree, adjacency, edges, perimeters.
     
-    - WOK: Area walkmesh files (walkmesh_type = 1) - defines walkable regions in game areas
-    - PWK: Placeable walkmesh files (walkmesh_type = 0) - collision geometry for containers, furniture
-    - DWK: Door walkmesh files (walkmesh_type = 0) - collision geometry for doors in various states
+    Decode `walkmesh_type` / face materials via `formats/Common/bioware_common.ksy`. Pinned readers: `meta.xref`.
     
-    The format uses a header-based structure where offsets point to various data tables, allowing
-    efficient random access to vertices, faces, materials, and acceleration structures.
+    .. seealso::
+       PyKotor wiki — BWM - https://github.com/OpenKotOR/PyKotor/wiki/Level-Layout-Formats#bwm
     
-    Binary Format Structure:
-    - File Header (8 bytes): Magic "BWM " and version "V1.0"
-    - Walkmesh Properties (52 bytes): Type, hook vectors, position
-    - Data Table Offsets (84 bytes): Counts and offsets for all data tables
-    - Vertices Array: Array of float3 (x, y, z) per vertex
-    - Face Indices Array: Array of uint32 triplets (vertex indices per face)
-    - Materials Array: Array of uint32 (SurfaceMaterial ID per face)
-    - Normals Array: Array of float3 (face normal per face) - WOK only
-    - Planar Distances Array: Array of float32 (per face) - WOK only
-    - AABB Nodes Array: Array of AABB structures (WOK only)
-    - Adjacencies Array: Array of int32 triplets (WOK only, -1 for no neighbor)
-    - Edges Array: Array of (edge_index, transition) pairs (WOK only)
-    - Perimeters Array: Array of edge indices (WOK only)
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/wiki/BWM-File-Format.md
-    - https://github.com/seedhartha/reone/blob/master/src/libs/graphics/format/bwmreader.cpp:27-171
-    - https://github.com/xoreos/xoreos/blob/master/src/engines/kotorbase/path/walkmeshloader.cpp:73-248
-    - https://github.com/KotOR-Community-Patches/KotOR.js/blob/master/src/odyssey/OdysseyWalkMesh.ts:452-473
+    .. seealso::
+       xoreos — WalkmeshLoader::load - https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/engines/kotorbase/path/walkmeshloader.cpp#L42-L113
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Bwm, self).__init__(_io)
@@ -332,6 +315,15 @@ class Bwm(KaitaiStruct):
 
 
     class DataTableOffsets(KaitaiStruct):
+        """**xoreos alignment:** `walkmeshloader.cpp` skips the same 64 bytes after `BWM ` / `V1.0`
+        then reads this 16×`u4` table in order: vertex count/offset, face count/offset, face-type
+        offset, **8-byte gap** (maps to `materials_offset` + `normals_offset` here), AABB count/offset,
+        **4-byte unknown** (`unknown`), adjacency count/offset, perimeter edge count/offset.
+        Perimeter handling differs: xoreos reads `(u32, u32)` pairs at `perimEdgesOffset` into a map
+        (`appendPerimEdges`); this `.ksy` models separate **edges** + **perimeters** arrays per
+        PyKotor-style BWM docs. **TODO: VERIFY** perimeter vs edge tables on representative `.wok` /
+        `.dwk` assets if you need bit-identical parity with `WalkmeshLoader` only.
+        """
         def __init__(self, _io, _parent=None, _root=None):
             super(Bwm.DataTableOffsets, self).__init__(_io)
             self._parent = _parent
@@ -475,7 +467,7 @@ class Bwm(KaitaiStruct):
         def _read(self):
             self.materials = []
             for i in range(self._root.data_table_offsets.face_count):
-                self.materials.append(self._io.read_u4le())
+                self.materials.append(KaitaiStream.resolve_enum(bioware_common.BiowareCommon.BiowareBwmFaceMaterialId, self._io.read_u4le()))
 
 
 
@@ -597,7 +589,7 @@ class Bwm(KaitaiStruct):
             self._read()
 
         def _read(self):
-            self.walkmesh_type = self._io.read_u4le()
+            self.walkmesh_type = KaitaiStream.resolve_enum(bioware_common.BiowareCommon.BiowareBwmWalkmeshKind, self._io.read_u4le())
             self.relative_use_position_1 = Bwm.Vec3f(self._io, self, self._root)
             self.relative_use_position_2 = Bwm.Vec3f(self._io, self, self._root)
             self.absolute_use_position_1 = Bwm.Vec3f(self._io, self, self._root)
@@ -619,7 +611,7 @@ class Bwm(KaitaiStruct):
             if hasattr(self, '_m_is_area_walkmesh'):
                 return self._m_is_area_walkmesh
 
-            self._m_is_area_walkmesh = self.walkmesh_type == 1
+            self._m_is_area_walkmesh = self.walkmesh_type == bioware_common.BiowareCommon.BiowareBwmWalkmeshKind.area_wok
             return getattr(self, '_m_is_area_walkmesh', None)
 
         @property
@@ -628,7 +620,7 @@ class Bwm(KaitaiStruct):
             if hasattr(self, '_m_is_placeable_or_door'):
                 return self._m_is_placeable_or_door
 
-            self._m_is_placeable_or_door = self.walkmesh_type == 0
+            self._m_is_placeable_or_door = self.walkmesh_type == bioware_common.BiowareCommon.BiowareBwmWalkmeshKind.placeable_or_door
             return getattr(self, '_m_is_placeable_or_door', None)
 
 
@@ -638,7 +630,7 @@ class Bwm(KaitaiStruct):
         if hasattr(self, '_m_aabb_nodes'):
             return self._m_aabb_nodes
 
-        if  ((self._root.walkmesh_properties.walkmesh_type == 1) and (self._root.data_table_offsets.aabb_count > 0)) :
+        if  ((self._root.walkmesh_properties.walkmesh_type == bioware_common.BiowareCommon.BiowareBwmWalkmeshKind.area_wok) and (self._root.data_table_offsets.aabb_count > 0)) :
             pass
             _pos = self._io.pos()
             self._io.seek(self._root.data_table_offsets.aabb_offset)
@@ -653,7 +645,7 @@ class Bwm(KaitaiStruct):
         if hasattr(self, '_m_adjacencies'):
             return self._m_adjacencies
 
-        if  ((self._root.walkmesh_properties.walkmesh_type == 1) and (self._root.data_table_offsets.adjacency_count > 0)) :
+        if  ((self._root.walkmesh_properties.walkmesh_type == bioware_common.BiowareCommon.BiowareBwmWalkmeshKind.area_wok) and (self._root.data_table_offsets.adjacency_count > 0)) :
             pass
             _pos = self._io.pos()
             self._io.seek(self._root.data_table_offsets.adjacency_offset)
@@ -668,7 +660,7 @@ class Bwm(KaitaiStruct):
         if hasattr(self, '_m_edges'):
             return self._m_edges
 
-        if  ((self._root.walkmesh_properties.walkmesh_type == 1) and (self._root.data_table_offsets.edge_count > 0)) :
+        if  ((self._root.walkmesh_properties.walkmesh_type == bioware_common.BiowareCommon.BiowareBwmWalkmeshKind.area_wok) and (self._root.data_table_offsets.edge_count > 0)) :
             pass
             _pos = self._io.pos()
             self._io.seek(self._root.data_table_offsets.edge_offset)
@@ -713,7 +705,7 @@ class Bwm(KaitaiStruct):
         if hasattr(self, '_m_normals'):
             return self._m_normals
 
-        if  ((self._root.walkmesh_properties.walkmesh_type == 1) and (self._root.data_table_offsets.face_count > 0)) :
+        if  ((self._root.walkmesh_properties.walkmesh_type == bioware_common.BiowareCommon.BiowareBwmWalkmeshKind.area_wok) and (self._root.data_table_offsets.face_count > 0)) :
             pass
             _pos = self._io.pos()
             self._io.seek(self._root.data_table_offsets.normals_offset)
@@ -728,7 +720,7 @@ class Bwm(KaitaiStruct):
         if hasattr(self, '_m_perimeters'):
             return self._m_perimeters
 
-        if  ((self._root.walkmesh_properties.walkmesh_type == 1) and (self._root.data_table_offsets.perimeter_count > 0)) :
+        if  ((self._root.walkmesh_properties.walkmesh_type == bioware_common.BiowareCommon.BiowareBwmWalkmeshKind.area_wok) and (self._root.data_table_offsets.perimeter_count > 0)) :
             pass
             _pos = self._io.pos()
             self._io.seek(self._root.data_table_offsets.perimeter_offset)
@@ -743,7 +735,7 @@ class Bwm(KaitaiStruct):
         if hasattr(self, '_m_planar_distances'):
             return self._m_planar_distances
 
-        if  ((self._root.walkmesh_properties.walkmesh_type == 1) and (self._root.data_table_offsets.face_count > 0)) :
+        if  ((self._root.walkmesh_properties.walkmesh_type == bioware_common.BiowareCommon.BiowareBwmWalkmeshKind.area_wok) and (self._root.data_table_offsets.face_count > 0)) :
             pass
             _pos = self._io.pos()
             self._io.seek(self._root.data_table_offsets.distances_offset)

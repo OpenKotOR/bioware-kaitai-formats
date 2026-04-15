@@ -4,28 +4,26 @@ meta:
   license: MIT
   endian: le
   file-extension: pcc
+  imports:
+    - ../Common/bioware_common
   xref:
-    ghidra_odyssey_k1:
-      note: "Mass Effect PCC format; not part of KotOR k1_win_gog_swkotor.exe (Odyssey). Do not treat as K1 engine-grounded."
-    me3explorer: https://me3explorer.fandom.com/wiki/PCC_File_Format
+    ghidra_odyssey_k1: |
+      Mass Effect PCC format; not part of KotOR k1_win_gog_swkotor.exe (Odyssey). Do not treat as K1 engine-grounded.
+    legendary_explorer_wiki: https://github.com/ME3Tweaks/LegendaryExplorer/wiki/PCC-File-Format
+    bioware_common_pcc_enums: |
+      Canonical `u4` enums: `formats/Common/bioware_common.ksy` → `bioware_pcc_package_kind`, `bioware_pcc_compression_codec`
+      (lowest-scope narrative: LegendaryExplorer wiki; xoreos does not ship a PCC reader).
+    xoreos_upstream_note: |
+      Upstream xoreos does not implement Mass Effect / Unreal-style PCC packages; there is no `*pcc*.cpp` reader to cite.
+      This `.ksy` documents the LegendaryExplorer / ME3Tweaks ecosystem, not xoreos runtime code.
 doc: |
-  PCC (Package) files are BioWare's proprietary version of Unreal Engine package files.
-  They store game resources including textures, meshes, materials, scripts, and more.
-  
-  PCC files can be either compressed or uncompressed:
-  - Uncompressed: Direct structure with header, tables, and data
-  - Compressed: Chunks containing compressed blocks using zlib or LZO
-  
-  The file structure consists of:
-  1. File Header - Contains magic number, version, table offsets, and metadata
-  2. Name Table - Contains all string names used in the package
-  3. Import Table - Contains references to external packages/classes
-  4. Export Table - Contains all objects stored in the package
-  5. Export Data - Raw binary data for each export
-  
-  References:
-  - https://me3explorer.fandom.com/wiki/PCC_File_Format
-  - Unreal Engine package format (BioWare variant)
+  **PCC** (Mass Effect–era Unreal package): BioWare variant of UE packages — `file_header`, name/import/export
+  tables, then export blobs. May be zlib/LZO chunked (`bioware_pcc_compression_codec` in `bioware_common`).
+
+  **Not KotOR:** no `k1_win_gog_swkotor.exe` grounding — follow LegendaryExplorer wiki + `meta.xref`.
+
+doc-ref:
+  - "https://github.com/ME3Tweaks/LegendaryExplorer/wiki/PCC-File-Format ME3Tweaks — PCC file format"
 
 seq:
   - id: header
@@ -98,10 +96,10 @@ types:
       
       - id: package_type
         type: u4
+        enum: bioware_common::bioware_pcc_package_kind
         doc: |
-          Package type indicator.
-          0 = Normal Package
-          1 = Patch Package (only for use in Patch_001.sfar)
+          Package type indicator (`u4`). Canonical: `formats/Common/bioware_common.ksy` → `bioware_pcc_package_kind`
+          (LegendaryExplorer PCC wiki).
       
       - id: name_count
         type: u4
@@ -185,12 +183,10 @@ types:
       
       - id: compression_type
         type: u4
+        enum: bioware_common::bioware_pcc_compression_codec
         doc: |
-          Compression algorithm type.
-          0 = None
-          1 = Zlib
-          2 = LZO
-          Unused if package is not compressed.
+          Compression codec when package is compressed (`u4`). Canonical: `formats/Common/bioware_common.ksy` → `bioware_pcc_compression_codec`
+          (LegendaryExplorer PCC wiki). Unused / undefined when uncompressed.
       
       - id: chunk_count
         type: u4

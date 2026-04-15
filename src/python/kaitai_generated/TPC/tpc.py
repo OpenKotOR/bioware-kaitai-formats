@@ -3,24 +3,23 @@
 
 import kaitaistruct
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
+import bioware_common
 
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Tpc(KaitaiStruct):
-    """TPC (Texture Pack Container) is KotOR's native texture format. It supports paletteless RGB/RGBA,
-    greyscale, and block-compressed DXT1/DXT3/DXT5 data, optional mipmaps, cube maps, and flipbook
-    animations controlled by companion TXI files.
+    """**TPC** (KotOR native texture): 128-byte header (`pixel_encoding` etc. via `bioware_common`) + opaque tail
+    (mips / cube faces / optional **TXI** suffix). Per-mip byte sizes are format-specific — see PyKotor `io_tpc.py`
+    (`meta.xref`).
     
-    This Kaitai definition parses the fixed 128-byte header and treats the remainder as an opaque
-    byte blob (mipmap/layer payload plus optional TXI footer). Per-mipmap sizes depend on format,
-    dimensions, and animation state; PyKotor's legacy reader in io_tpc.py implements that logic.
+    .. seealso::
+       PyKotor wiki — TPC - https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#tpc
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/wiki/TPC-File-Format.md
-    - https://github.com/seedhartha/reone/blob/master/src/libs/graphics/format/tpcreader.cpp
-    - https://github.com/xoreos/xoreos/blob/master/src/graphics/images/tpc.cpp
+    
+    .. seealso::
+       xoreos — TPC::readHeader - https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/graphics/images/tpc.cpp#L68-L252
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Tpc, self).__init__(_io)
@@ -49,7 +48,7 @@ class Tpc(KaitaiStruct):
             self.alpha_test = self._io.read_f4le()
             self.width = self._io.read_u2le()
             self.height = self._io.read_u2le()
-            self.pixel_encoding = self._io.read_u1()
+            self.pixel_encoding = KaitaiStream.resolve_enum(bioware_common.BiowareCommon.BiowareTpcPixelFormatId, self._io.read_u1())
             self.mipmap_count = self._io.read_u1()
             self.reserved = []
             for i in range(114):

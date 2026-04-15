@@ -3,41 +3,25 @@
 
 import kaitaistruct
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
-from enum import IntEnum
+import tga_common
 
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Tga(KaitaiStruct):
-    """TGA (Targa) is an uncompressed raster image format used in KotOR for textures.
-    TGA files support RGB, RGBA, and greyscale formats with optional RLE compression.
+    """**TGA** (Truevision Targa): 18-byte header, optional color map, image id, then raw or RLE pixels. KotOR often
+    converts authoring TGAs to **TPC** for shipping.
     
-    TGA files are commonly converted to TPC format for use in KotOR, but the game
-    can also load TGA files directly in some contexts.
+    Shared header enums: `formats/Common/tga_common.ksy`.
     
-    Format Structure:
-    - Header (18 bytes): Image metadata, dimensions, pixel format
-    - Color Map (optional): Palette data for indexed color images
-    - Image Data: Raw or RLE-compressed pixel data
+    .. seealso::
+       PyKotor wiki — textures (TPC/TGA pipeline) - https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#tpc
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/wiki/TPC-File-Format.md - TGA conversion to TPC
-    - Standard TGA format specification
+    
+    .. seealso::
+       xoreos — TGA::readHeader - https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/graphics/images/tga.cpp#L89-L177
     """
-
-    class ColorMapType(IntEnum):
-        none = 0
-        present = 1
-
-    class ImageType(IntEnum):
-        no_image_data = 0
-        uncompressed_color_mapped = 1
-        uncompressed_rgb = 2
-        uncompressed_greyscale = 3
-        rle_color_mapped = 9
-        rle_rgb = 10
-        rle_greyscale = 11
     def __init__(self, _io, _parent=None, _root=None):
         super(Tga, self).__init__(_io)
         self._parent = _parent
@@ -46,9 +30,9 @@ class Tga(KaitaiStruct):
 
     def _read(self):
         self.id_length = self._io.read_u1()
-        self.color_map_type = KaitaiStream.resolve_enum(Tga.ColorMapType, self._io.read_u1())
-        self.image_type = KaitaiStream.resolve_enum(Tga.ImageType, self._io.read_u1())
-        if self.color_map_type == Tga.ColorMapType.present:
+        self.color_map_type = KaitaiStream.resolve_enum(tga_common.TgaCommon.TgaColorMapType, self._io.read_u1())
+        self.image_type = KaitaiStream.resolve_enum(tga_common.TgaCommon.TgaImageType, self._io.read_u1())
+        if self.color_map_type == tga_common.TgaCommon.TgaColorMapType.present:
             pass
             self.color_map_spec = Tga.ColorMapSpecification(self._io, self, self._root)
 
@@ -57,7 +41,7 @@ class Tga(KaitaiStruct):
             pass
             self.image_id = (self._io.read_bytes(self.id_length)).decode(u"ASCII")
 
-        if self.color_map_type == Tga.ColorMapType.present:
+        if self.color_map_type == tga_common.TgaCommon.TgaColorMapType.present:
             pass
             self.color_map_data = []
             for i in range(self.color_map_spec.length):
@@ -74,7 +58,7 @@ class Tga(KaitaiStruct):
 
     def _fetch_instances(self):
         pass
-        if self.color_map_type == Tga.ColorMapType.present:
+        if self.color_map_type == tga_common.TgaCommon.TgaColorMapType.present:
             pass
             self.color_map_spec._fetch_instances()
 
@@ -82,7 +66,7 @@ class Tga(KaitaiStruct):
         if self.id_length > 0:
             pass
 
-        if self.color_map_type == Tga.ColorMapType.present:
+        if self.color_map_type == tga_common.TgaCommon.TgaColorMapType.present:
             pass
             for i in range(len(self.color_map_data)):
                 pass

@@ -3,49 +3,25 @@
 
 import kaitaistruct
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
-from enum import IntEnum
+import bioware_common
 
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Lip(KaitaiStruct):
-    """LIP (LIP Synchronization) files drive mouth animation for voiced dialogue in BioWare games.
-    Each file contains a compact series of keyframes that map timestamps to discrete viseme
-    (mouth shape) indices so that the engine can interpolate character lip movement while
-    playing the companion WAV audio line.
+    """**LIP** (lip sync): sorted `(timestamp_f32, viseme_u8)` keyframes (`LIP ` / `V1.0`). Viseme ids 0–15 map through
+    `bioware_lip_viseme_id` in `bioware_common.ksy`. Pair with a **WAV** of matching duration.
     
-    LIP files are always binary and contain only animation data. They are paired with WAV
-    voice-over resources of identical duration; the LIP length field must match the WAV
-    playback time for glitch-free animation.
+    xoreos does not ship a standalone `lipfile.cpp` reader — use PyKotor / reone / KotOR.js (`meta.xref`).
     
-    Keyframes are sorted chronologically and store a timestamp (float seconds) plus a
-    1-byte viseme index (0-15). The format uses the 16-shape Preston Blair phoneme set.
+    .. seealso::
+       PyKotor wiki — LIP - https://github.com/OpenKotOR/PyKotor/wiki/Audio-and-Localization-Formats#lip
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/wiki/LIP-File-Format.md
-    - https://github.com/seedhartha/reone/blob/master/src/libs/graphics/format/lipreader.cpp:27-42
-    - https://github.com/xoreos/xoreos/blob/master/src/graphics/aurora/lipfile.cpp
-    - https://github.com/KotOR-Community-Patches/KotOR.js/blob/master/src/resource/LIPObject.ts:93-146
+    
+    .. seealso::
+       reone — LIPReader - https://github.com/th3w1zard1/reone/blob/72e7f615a5790adfa2a12105d2570211e1c233b2/src/libs/graphics/format/lipreader.cpp#L27-L42
     """
-
-    class LipShapes(IntEnum):
-        neutral = 0
-        ee = 1
-        eh = 2
-        ah = 3
-        oh = 4
-        ooh = 5
-        y = 6
-        sts = 7
-        fv = 8
-        ng = 9
-        th = 10
-        mpb = 11
-        td = 12
-        sh = 13
-        l = 14
-        kg = 15
     def __init__(self, _io, _parent=None, _root=None):
         super(Lip, self).__init__(_io)
         self._parent = _parent
@@ -83,7 +59,7 @@ class Lip(KaitaiStruct):
 
         def _read(self):
             self.timestamp = self._io.read_f4le()
-            self.shape = KaitaiStream.resolve_enum(Lip.LipShapes, self._io.read_u1())
+            self.shape = KaitaiStream.resolve_enum(bioware_common.BiowareCommon.BiowareLipVisemeId, self._io.read_u1())
 
 
         def _fetch_instances(self):

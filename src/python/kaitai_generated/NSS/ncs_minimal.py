@@ -3,6 +3,7 @@
 
 import kaitaistruct
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
+import bioware_ncs_common
 
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
@@ -18,7 +19,7 @@ class NcsMinimal(KaitaiStruct):
     def _read(self):
         self.file_type = (self._io.read_bytes(4)).decode(u"ASCII")
         self.file_version = (self._io.read_bytes(4)).decode(u"ASCII")
-        self.size_marker = self._io.read_u1()
+        self.size_marker = KaitaiStream.resolve_enum(bioware_ncs_common.BiowareNcsCommon.NcsProgramSizeMarker, self._io.read_u1())
         self.total_file_size = self._io.read_u4be()
         self.instructions = []
         i = 0
@@ -45,8 +46,8 @@ class NcsMinimal(KaitaiStruct):
             self._read()
 
         def _read(self):
-            self.bytecode = self._io.read_u1()
-            self.qualifier = self._io.read_u1()
+            self.bytecode = KaitaiStream.resolve_enum(bioware_ncs_common.BiowareNcsCommon.NcsBytecode, self._io.read_u1())
+            self.qualifier = KaitaiStream.resolve_enum(bioware_ncs_common.BiowareNcsCommon.NcsInstructionQualifier, self._io.read_u1())
 
 
         def _fetch_instances(self):

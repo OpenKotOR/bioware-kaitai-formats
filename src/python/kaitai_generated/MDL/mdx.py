@@ -9,25 +9,18 @@ if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 11):
     raise Exception("Incompatible Kaitai Struct Python API: 0.11 or later is required, but you have %s" % (kaitaistruct.__version__))
 
 class Mdx(KaitaiStruct):
-    """MDX (Model Extension) files contain vertex data for MDL models. MDX files work in tandem
-    with MDL files which define the model structure, hierarchy, and metadata. The MDX file
-    contains the actual vertex positions, normals, texture coordinates, colors, and other
-    per-vertex attributes.
+    """**MDX** (model extension): interleaved vertex bytes for meshes declared in the paired **`MDL.ksy`** file.
+    Offsets / `mdx_vertex_size` / `mdx_data_flags` live on MDL trimesh headers; this root is intentionally an
+    opaque `size-eos` span — per-attribute layouts are MDL-driven.
     
-    Format Structure:
-    - Vertex data is organized by mesh and stored at offsets specified in the MDL file
-    - Each mesh can have different vertex formats depending on what attributes are present
-    - Vertex attributes include: positions, normals, texture coordinates (up to 4 sets),
-      vertex colors, tangent space data, and bone weights/indices for skinned meshes
+    xoreos interleaved MDX reads: `meta.xref.xoreos_model_kotor_mdx_reads`.
     
-    MDX data is referenced from MDL trimesh headers via offsets. The MDL file specifies:
-    - mdx_data_offset: Absolute offset to this mesh's vertex data in MDX file
-    - mdx_vertex_size: Size in bytes of each vertex
-    - mdx_data_flags: Bitmask indicating which vertex attributes are present
+    .. seealso::
+       PyKotor wiki — MDL/MDX - https://github.com/OpenKotOR/PyKotor/wiki/MDL-MDX-File-Format
     
-    References:
-    - https://github.com/OldRepublicDevs/PyKotor/wiki/MDL-MDX-File-Format.md - Complete MDL/MDX format documentation
-    - MDL.ksy - Model structure that references MDX data
+    
+    .. seealso::
+       xoreos — Model_KotOR MDX reads - https://github.com/th3w1zard1/xoreos/blob/f36b681b2a38799ddd6fce0f252b6d7fa781dfc2/src/graphics/aurora/model_kotor.cpp#L885-L917
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Mdx, self).__init__(_io)
