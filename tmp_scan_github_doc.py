@@ -6,16 +6,19 @@ url_re = re.compile(r"https://github\.com/[^\s]+/blob/master/[^\s#]+")
 xref_re = re.compile(r"^    [A-Za-z0-9_]+:\s+https://github\.com/")
 
 
-def in_doc_ref_section(lines: list[str], idx0: int) -> bool:
-    """True if lines[idx0] is at or after a top-level `doc-ref:` key until `seq:`/`types:`/`instances:`/`enums:` at indent 0."""
-    for j in range(idx0, -1, -1):
-        s = lines[j]
+def line_in_doc_ref_block(lines: list[str], idx0: int) -> bool:
+    """True if idx0 is strictly after a root-level `doc-ref:` line and before the next root `seq|types|instances|enums`."""
+    dr: int | None = None
+    for j, s in enumerate(lines):
         if s.startswith("doc-ref:"):
-            return True
-        if re.match(r"^(meta|seq|types|instances|enums):", s):
-            return j != idx0 and s.startswith("doc-ref:") is False and j < idx0
-        if j == 0:
-            break
+            dr = j
+            continue
+        if dr is None:
+            continue
+        if re.match(r"^(seq|types|instances|enums):", s):
+            return dr < idx0 < j
+    if dr is not None:
+        return idx0 > dr
     return False
 
 
@@ -25,16 +28,16 @@ for p in sorted(root.rglob("*.ksy")):
         lines = p.read_text(encoding="utf-8").splitlines()
     except OSError:
         continue
-    for i, line in enumerate(lines, 1):
+    for i, line in enumerate(lines):
         if "blob/master/" not in line or "#L" in line:
             continue
         if not url_re.search(line):
             continue
         if xref_re.search(line):
             continue
-        if in_doc_ref_section(lines, i - 1):
+        if line_in_doc_ref_block(lines, i):
             continue
-        out.append((p.as_posix(), i, line.rstrip()[:220]))
-for rel, ln, s in out[:30]:
+        out.append((p.as_posix(), i + 1, line.rstrip()[:220]))
+for rel, ln, s in out[:40]:
     print(f"{rel}:{ln}: {s}")
 print("--- total", len(out))
