@@ -117,7 +117,9 @@ doc-ref:
   - "https://github.com/xoreos/xoreos/blob/master/src/aurora/gff3file.cpp#L50-L63 xoreos — GFF3File::Header::read"
   - "https://github.com/xoreos/xoreos/blob/master/src/aurora/gff3file.cpp#L110-L181 xoreos — GFF3File load (post-header struct/field arena wiring)"
   - "https://github.com/xoreos/xoreos/blob/master/src/aurora/gff4file.cpp#L48-L72 xoreos — GFF4File::Header::read"
+  - "https://github.com/xoreos/xoreos/blob/master/src/aurora/gdafile.cpp#L40-L42 xoreos — G2DA `kG2DAID` + `kVersion01` / `kVersion02` (pair with in-tree `gff4_g2da_*` enums)"
   - "https://github.com/xoreos/xoreos/blob/master/src/aurora/gff4file.cpp#L151-L164 xoreos — GFF4File::load entry"
+  - "formats/Common/bioware_gff_common.ksy In-tree — `gff4_g2da_file_type_be` / `gff4_g2da_type_version_be` (compare to `gff4_after_aurora` here)"
   - "https://github.com/OpenKotOR/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/gff/io_gff.py#L70-L114 PyKotor — GFFBinaryReader.load"
   - "https://github.com/modawan/reone/blob/master/src/libs/resource/format/gffreader.cpp#L27-L225 reone — GffReader"
   - "https://github.com/KobaltBlu/KotOR.js/blob/master/src/resource/GFFObject.ts#L152-L221 KotOR.js — GFFObject.parse"
@@ -263,12 +265,17 @@ types:
       - id: file_type
         type: u4be
         doc: |
-          GFF4 logical type fourCC (e.g. `G2DA` for GDA tables). `Header::read` uses
-          `readUint32BE` on the endian-aware substream (`gff4file.cpp`).
+          GFF4 logical type fourCC (e.g. ``G2DA`` for Dragon Age ``.gda`` tables). `Header::read` uses
+          `readUint32BE` on the endian-aware substream (`gff4file.cpp`). For G2DA, compare to
+          ``bioware_gff_common::gff4_g2da_file_type_be``; **do not** set `enum:` on this field — other GFF4
+          top-level kinds use different fourCCs in the same slot.
 
       - id: type_version
         type: u4be
-        doc: Version of the logical `file_type` (GDA uses `V0.1` / `V0.2` per `gdafile.cpp`).
+        doc: |
+          Version of the logical `file_type` (G2DA: ``V0.1`` / ``V0.2`` per ``kVersion01`` / ``kVersion02`` in
+          `gdafile.cpp` — ``bioware_gff_common::gff4_g2da_type_version_be``). **Do not** attach `enum:` here;
+          non-G2DA GFF4 streams may repurpose the same `u4be` field.
 
       - id: num_struct_templates
         type: u4le

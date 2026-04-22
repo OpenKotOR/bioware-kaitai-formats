@@ -13,6 +13,7 @@ meta:
     pykotor_io_gff_field_dispatch: https://github.com/OpenKotOR/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/gff/io_gff.py#L197-L273
     xoreos_gff3file_read_header: https://github.com/xoreos/xoreos/blob/master/src/aurora/gff3file.cpp#L50-L63
     xoreos_gff4file_header_read: https://github.com/xoreos/xoreos/blob/master/src/aurora/gff4file.cpp#L59-L82
+    xoreos_gdafile_g2da_constants: https://github.com/xoreos/xoreos/blob/master/src/aurora/gdafile.cpp#L40-L42
     reone_gffreader: https://github.com/modawan/reone/blob/master/src/libs/resource/format/gffreader.cpp#L27-L225
     xoreos_tools_gffdumper_identify: https://github.com/xoreos/xoreos-tools/blob/master/src/xml/gffdumper.cpp#L36-L176
     xoreos_tools_gffcreator_create: https://github.com/xoreos/xoreos-tools/blob/master/src/xml/gffcreator.cpp#L43-L60
@@ -25,8 +26,10 @@ doc: |
   Imported by `formats/GFF/GFF.ksy`. Each enum member’s `doc:` is the **lowest-scope** narrative for that numeric ID
   (Ghidra symbol names, `ReadField*` addresses, PyKotor / reone / wiki line anchors).
 
-  **GFF4** uses a different container/struct layout on disk (`GFF4File::Header::read` in `meta.xref.xoreos_gff4file_header_read`);
-  this enum remains the **GFF3** field-type table unless a future split spec proves wire-identical IDs across both.
+  **GFF4** uses a different container/struct layout on disk (`GFF4File::Header::read` in `meta.xref.xoreos_gff4file_header_read`).
+  Dragon Age **G2DA** (`.gda`) logical `file_type` + `type_version` tags: `gff4_g2da_file_type_be` and `gff4_g2da_type_version_be`
+  (compare to `GFF.ksy` `gff4_after_aurora` — do **not** use these as a shared `enum:` on that header; other GFF4 kinds reuse the same `u4be` slots).
+  GFF3 field-type wire tags remain in `gff_field_type` below.
 
 doc-ref:
   - "https://github.com/OpenKotOR/PyKotor/wiki/GFF-File-Format#gff-data-types PyKotor wiki — GFF data types"
@@ -34,6 +37,7 @@ doc-ref:
   - "https://github.com/OpenKotOR/PyKotor/blob/master/Libraries/PyKotor/src/pykotor/resource/formats/gff/io_gff.py#L197-L273 PyKotor — field read dispatch"
   - "https://github.com/xoreos/xoreos/blob/master/src/aurora/gff3file.cpp#L50-L63 xoreos — `GFF3File::readHeader`"
   - "https://github.com/xoreos/xoreos/blob/master/src/aurora/gff4file.cpp#L59-L82 xoreos — `GFF4File::Header::read` (GFF4 container; distinct from GFF3 field tags above)"
+  - "https://github.com/xoreos/xoreos/blob/master/src/aurora/gdafile.cpp#L40-L42 xoreos — G2DA `kG2DAID` + `kVersion01` / `kVersion02` (GDA wire)"
   - "https://github.com/modawan/reone/blob/master/src/libs/resource/format/gffreader.cpp#L27-L225 reone — `GffReader`"
   - "https://github.com/xoreos/xoreos-tools/blob/master/src/xml/gffdumper.cpp#L36-L176 xoreos-tools — `gffdumper` (identify / dump)"
   - "https://github.com/xoreos/xoreos-tools/blob/master/src/xml/gffcreator.cpp#L43-L60 xoreos-tools — `gffcreator` (create)"
@@ -42,6 +46,30 @@ doc-ref:
   - "https://github.com/xoreos/xoreos-docs/tree/master/specs/bioware xoreos-docs — BioWare specs PDF tree"
 
 enums:
+  # GFF4 G2DA (`.gda`) `file_type` / `type_version` after `platform_id` — xoreos `GDAFile::load` / `add`.
+  # `formats/GFF/GFF.ksy` `gff4_after_aurora` keeps these as raw `u4be` for forward compatibility.
+  gff4_g2da_file_type_be:
+    0x47324441:
+      id: g2da
+      doc: |
+        ``MKTAG('G','2','D','A')`` — GFF4 G2DA (2D table). xoreos ``kG2DAID``; ``GDAFile::load`` / ``add`` use ``GFF4File(..., kG2DAID)``.
+        https://github.com/xoreos/xoreos/blob/master/src/aurora/gdafile.cpp#L40
+        https://github.com/xoreos/xoreos/blob/master/src/aurora/gdafile.cpp#L275-L281
+
+  gff4_g2da_type_version_be:
+    0x56302e31:
+      id: v0_1
+      doc: |
+        ``MKTAG('V','0','.','1')`` — G2DA v0.1. xoreos ``kVersion01``; other GFF4 top-level types may use unrelated ``type_version`` values in the same header field.
+        https://github.com/xoreos/xoreos/blob/master/src/aurora/gdafile.cpp#L41
+        https://github.com/xoreos/xoreos/blob/master/src/aurora/gdafile.cpp#L279-L281
+    0x56302e32:
+      id: v0_2
+      doc: |
+        ``MKTAG('V','0','.','2')`` — G2DA v0.2. xoreos ``kVersion02``.
+        https://github.com/xoreos/xoreos/blob/master/src/aurora/gdafile.cpp#L42
+        https://github.com/xoreos/xoreos/blob/master/src/aurora/gdafile.cpp#L279-L281
+
   gff_field_type:
     0:
       id: uint8

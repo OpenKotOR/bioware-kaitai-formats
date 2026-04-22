@@ -41,6 +41,7 @@ doc: |
   **reone:** not applicable for GDA wire ingestion on the KotOR fork (`meta.xref.reone_gda_consumer_note`).
 
 doc-ref:
+  - "formats/Common/bioware_gff_common.ksy In-tree — `gff4_g2da_file_type_be` / `gff4_g2da_type_version_be` (G2DA fourCC + V0.x — compare to `GFF.ksy` `gff4_after_aurora`)"
   - "https://github.com/xoreos/xoreos/blob/master/src/aurora/gdafile.cpp#L275-L305 xoreos — `GDAFile::load`"
   - "https://github.com/xoreos/xoreos/blob/master/src/aurora/gff4file.cpp#L87-L93 xoreos — `GFF4File` stream ctor (type dispatch)"
   - "https://github.com/xoreos/xoreos/blob/master/src/aurora/gff4fields.h#L1230-L1260 xoreos — G2DA column field ids (excerpt)"
