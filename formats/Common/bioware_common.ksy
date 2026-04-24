@@ -119,7 +119,7 @@ types:
   # CExoString - Used in GFF field data section  
   bioware_cexo_string:
     doc: |
-      BioWare CExoString - variable-length string with 4-byte length prefix.
+      BioWare CExoString - variable-length string with 4 (0x4)-byte length prefix.
       Used for string fields in GFF files.
     seq:
       - id: len_string
@@ -169,7 +169,7 @@ types:
   # Binary data - Used in GFF field data section
   bioware_binary_data:
     doc: |
-      Variable-length binary data with 4-byte length prefix.
+      Variable-length binary data with 4 (0x4)-byte length prefix.
       Used for Void/Binary fields in GFF files.
     seq:
       - id: len_value

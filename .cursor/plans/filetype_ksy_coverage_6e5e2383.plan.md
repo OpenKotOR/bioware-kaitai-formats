@@ -1,6 +1,6 @@
 ---
 name: FileType KSY coverage
-overview: "Clarify xoreos `ResourceType` vs `FileType`, explain the `uv run` Win32 error, then drive exhaustive `FileType` coverage: per-template GFF `.ksy` under `formats/GFF/Generics/`, dedicated `.ksy` for every other binary wire family, inventory automation against [`formats/Common/bioware_type_ids.ksy`](formats/Common/bioware_type_ids.ksy), and verification via xoreos/xoreos-tools + Ghidra MCP (`user-agdec-http`)."
+overview: "Clarify xoreos `ResourceType` vs `FileType`, explain the `uv run` Win32 error, then drive exhaustive `FileType` coverage: per-template GFF `.ksy` under `formats/GFF/Generics/`, dedicated `.ksy` for every other binary wire family, inventory automation against [`formats/Common/bioware_type_ids.ksy`](formats/Common/bioware_type_ids.ksy), and verification via xoreos/xoreos-tools plus **observed behavior** in shipped executables when it anchors a layout or enum."
 todos:
   - id: clarify-enums-doc
     content: Document ResourceType vs FileType in bioware_type_ids.ksy / XOREOS_FORMAT_COVERAGE.md and sync upstream drift (e.g. WBM 41000 if confirmed on master).
@@ -12,7 +12,7 @@ todos:
     content: Scaffold formats/GFF/Generics/<Template>/*.ksy for KotOR-critical GFF templates (ARE/GIT/IFO/UTC/UT*/DLG/JRL/PTH/…) importing shared GFF modules.
     status: completed
   - id: binary-gaps-wave1-kotor
-    content: Prioritize remaining KotOR binary FileType families (TXB/TXB2/BIP/etc.) with xoreos reader parity + Ghidra MCP xrefs where applicable.
+    content: Prioritize remaining KotOR binary FileType families (TXB/TXB2/BIP/etc.) with xoreos reader parity and `meta.xref` notes for **observed behavior** / upstream parsers where applicable.
     status: completed
   - id: uv-run-doc
     content: Document correct `uv run pwsh -File ...` invocation for compile scripts (README or script header).
@@ -77,7 +77,7 @@ The script + YAML table is how we make “zero omissions” **measurable** and k
 
 - Build `filetype_coverage.yaml` starting from `xoreos_file_type_id` keys.
 - Mark each ID with tier + authoritative upstream pointer (prefer `xoreos/xoreos` `master` `blob/...#L` per [`AGENTS.md`](AGENTS.md)).
-- For KotOR PC **consumption proofs**, add `ghidra_odyssey_k1` (or equivalent) xref blocks where MCP `user-agdec-http` is used to anchor structs/enums.
+- For KotOR PC **consumption proofs**, add `meta.xref` blocks (per-field `seq`/`types` in `.ksy`) that cite **observed behavior** or canonical upstreams when they anchor structs/enums — not boilerplate that names external tooling.
 
 ### Phase B — GFF templates (your selection: per-template `.ksy`)
 
@@ -94,7 +94,7 @@ For each remaining tier A target, create or extend `.ksy` under `formats/<Family
 
 Priority order (matches your note):
 
-1. **KotOR / Odyssey Ghidra evidence** for structs that differ from docs-only guesses.
+1. **KotOR — observed behavior** in shipped builds for structs that differ from docs-only guesses.
 2. **xoreos / xoreos-tools** parsers as primary wire truth.
 3. **PyKotor / reone** as secondary cross-checks where they agree on bytes.
 

@@ -149,7 +149,7 @@ documented in `.ksy` only where a line-oriented schema is useful for tooling; se
 full binary-vs-text scope rule.
 
 Reference: https://github.com/OpenKotOR/PyKotor/wiki/MDL-MDX-File-Format — ASCII MDL Format section
-Reference: https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L3916-L4698 — `readasciimdl` (Perl; line band matches former PyKotor vendor drop)
+Reference: https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L3916-L4698 — `readasciimdl` (Perl; line band matches former PyKotor vendor drop)
 Binary wire IDs (for cross-checking ASCII integers): PyKotor wiki binary MDL section, xoreos-docs Torlack `binmdl.html`,
 and `formats/Common/bioware_mdl_common.ksy` (canonical enum tables; this ASCII spec does not duplicate them as local `enums:`).
 
@@ -159,7 +159,7 @@ and `formats/Common/bioware_mdl_common.ksy` (canonical enum tables; this ASCII s
 @see <a href="https://github.com/OpenKotOR/PyKotor/wiki/MDL-MDX-File-Format#binary-mdl-format">PyKotor wiki — binary MDL (wire vs ASCII)</a>
 @see <a href="https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/binmdl.html">xoreos-docs — Torlack binmdl</a>
 @see <a href="https://github.com/OpenKotOR/bioware-kaitai-formats/blob/master/formats/Common/bioware_mdl_common.ksy">In-tree — shared MDL/MDX wire enums (cross-check ASCII numeric keywords)</a>
-@see <a href="https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L3916-L4698">Community MDLOps — readasciimdl</a>
+@see <a href="https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L3916-L4698">Community MDLOps — readasciimdl</a>
 ]##
 proc read*(_: typedesc[MdlAscii], io: KaitaiStream, root: KaitaiStruct, parent: KaitaiStruct): MdlAscii =
   template this: untyped = result

@@ -77,7 +77,7 @@ enums:
     1:
       id: int8
       doc: |
-        Numeric 1 — INT8 in low byte of the 4-byte inline slot (+8).
+        Numeric 1 — INT8 in low byte of the 4 (0x4)-byte inline slot (+8).
         PyKotor: https://github.com/OpenKotOR/PyKotor/blob/e03ea2c077f1be1d6704d228d156748a9cc3d0eb/Libraries/PyKotor/src/pykotor/resource/formats/gff/io_gff.py#L247-L251
     2:
       id: uint16

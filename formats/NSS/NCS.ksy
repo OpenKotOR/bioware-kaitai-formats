@@ -22,7 +22,7 @@ doc: |
   Scripts run inside a stack-based virtual machine shared across Aurora engine games.
   
   Format Structure:
-  - Header (13 bytes): Signature "NCS ", version "V1.0", size marker (0x42), file size
+  - Header (13 (0xd) bytes): Signature "NCS ", version "V1.0", size marker (0x42), file size
   - Instruction Stream: Sequence of bytecode instructions
   
   All multi-byte values in NCS files are stored in BIG-ENDIAN byte order (network byte order).
@@ -87,7 +87,7 @@ types:
       Format: <opcode: uint8> <qualifier: uint8> <arguments: variable>
       
       Instruction size varies by opcode:
-      - Base: 2 bytes (opcode + qualifier)
+      - Base: 2 (0x2) bytes (opcode + qualifier)
       - Arguments: 0 to variable bytes depending on instruction type
       
       Common instruction types:
@@ -103,7 +103,7 @@ types:
         type: u1
         enum: bioware_ncs_common::ncs_bytecode
         doc: |
-          Instruction opcode (0x01-0x2D, excluding 0x42 which is reserved for size marker).
+          Instruction opcode (1 (0x1)–45 (0x2d), excluding 0x42 which is reserved for size marker).
           Determines the instruction type and argument format.
       
       - id: qualifier
@@ -121,7 +121,7 @@ types:
           Instruction arguments (variable size).
           Format depends on opcode:
           - No args: None (total 2B)
-          - Int/Float/Object: 4 bytes (total 6B)
+          - Int/Float/Object: 4 (0x4) bytes (total 6B)
           - String: 2B length + data (total 2+N B)
           - Jump: 4B signed offset (total 6B)
           - Stack copy: 4B offset + 2B size (total 8B)

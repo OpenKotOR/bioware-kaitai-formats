@@ -14,7 +14,7 @@ meta:
       **`_load_tlk_from_kaitai`** **33–64**; legacy header **67–76**; **`TLKBinaryReader.load`** **154–160**; **`TLKBinaryWriter.write`** **173–196**; constants **`_FILE_HEADER_SIZE` / `_ENTRY_SIZE`** **23–24**.
     github_openkotor_pykotor_tlk_data: |
       https://github.com/OpenKotOR/PyKotor — `Libraries/PyKotor/src/pykotor/resource/formats/tlk/tlk_data.py`:
-      wire overview **14–31**; **`class TLK`** **47–79**; **`TLKEntry`** 40-byte row **302–333**; **`V4.0`** (Jade) noted **17–18**.
+      wire overview **14–31**; **`class TLK`** **47–79**; **`TLKEntry`** 40 (0x28)-byte row **302–333**; **`V4.0`** (Jade) noted **17–18**.
     github_modawan_reone_tlkreader: |
       https://github.com/modawan/reone — `src/libs/resource/format/tlkreader.cpp`: **`StringFlags`** **27–31**; **`TlkReader::load`** **33–41**; **`loadStrings`** **43–67**.
     xoreos_talktable_factory_load: https://github.com/xoreos/xoreos/blob/89c99d2a93c23f3ba2b1218759e38775e4f2bdf9/src/aurora/talktable.cpp#L35-L69
@@ -36,8 +36,8 @@ doc: |
   to localized text and associated voice-over audio files.
 
   Binary Format Structure:
-  - File Header (20 bytes): File type signature, version, language ID, string count, entries offset
-  - String Data Table (40 bytes per entry): Metadata for each string entry (flags, sound ResRef, offsets, lengths)
+  - File Header (20 (0x14) bytes): File type signature, version, language ID, string count, entries offset
+  - String Data Table (40 (0x28) bytes per entry): Metadata for each string entry (flags, sound ResRef, offsets, lengths)
   - String Entries (variable size): Sequential null-terminated text strings starting at entries_offset
 
   The format uses a two-level structure:
@@ -66,11 +66,11 @@ doc-ref:
 seq:
   - id: header
     type: tlk_header
-    doc: TLK file header (20 bytes) - contains file signature, version, language, and counts
+    doc: TLK file header (20 (0x14) bytes) - contains file signature, version, language, and counts
 
   - id: string_data_table
     type: string_data_table
-    doc: Array of string data entries (metadata for each string) - 40 bytes per entry
+    doc: Array of string data entries (metadata for each string) - 40 (0x28) bytes per entry
 
 types:
   tlk_header:
@@ -163,7 +163,7 @@ types:
         size: 16
         doc: |
           Voice-over audio filename (ResRef), null-terminated ASCII, max 16 chars.
-          If the string is shorter than 16 bytes, it is null-padded.
+          If the string is shorter than 16 (0x10) bytes, it is null-padded.
           Empty string (all nulls) indicates no voice-over audio.
 
       - id: volume_variance
@@ -183,7 +183,7 @@ types:
         doc: |
           Offset to string text relative to entries_offset.
           The actual file offset is: header.entries_offset + text_offset.
-          First string starts at offset 0, subsequent strings follow sequentially.
+          First string starts at offset 0 (0x0), subsequent strings follow sequentially.
 
       - id: text_length
         type: u4
@@ -252,5 +252,5 @@ types:
         doc: |
           Size of each string_data_entry in bytes.
           Breakdown: flags (4) + sound_resref (16) + volume_variance (4) + pitch_variance (4) + 
-          text_offset (4) + text_length (4) + sound_length (4) = 40 bytes total.
+          text_offset (4) + text_length (4) + sound_length (4) = 40 (0x28) bytes total.
 

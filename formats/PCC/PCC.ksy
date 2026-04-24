@@ -227,7 +227,7 @@ types:
         size: "(length < 0 ? -length : length) * 2"
         doc: |
           Name string encoded as UTF-16LE (WCHAR).
-          Size is absolute value of length * 2 bytes per character.
+          Size is absolute value of length * 2 (0x2) bytes per character.
           Negative length indicates WCHAR count (use absolute value).
     
     instances:
@@ -237,7 +237,7 @@ types:
       
       name_size:
         value: abs_length * 2
-        doc: Size of name string in bytes (absolute length * 2 bytes per WCHAR)
+        doc: Size of name string in bytes (absolute length * 2 (0x2) bytes per WCHAR)
   
   import_table:
     seq:

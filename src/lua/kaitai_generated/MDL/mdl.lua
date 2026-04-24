@@ -35,8 +35,8 @@ local str_decode = require("string_decode")
 -- See also: xoreos-docs — Torlack binmdl (controller / Aurora background) (https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/binmdl.html)
 -- See also: reone — MdlMdxReader::load (https://github.com/modawan/reone/blob/master/src/libs/graphics/format/mdlmdxreader.cpp#L55-L118)
 -- See also: KotOR.js — OdysseyModel binary constructor (https://github.com/KobaltBlu/KotOR.js/blob/master/src/odyssey/OdysseyModel.ts#L56-L170)
--- See also: Community MDLOps — controller name table (https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407)
--- See also: Community MDLOps — `readasciimdl` (ASCII MDL ingest) (https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L3916-L4698)
+-- See also: Community MDLOps — controller name table (https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407)
+-- See also: Community MDLOps — `readasciimdl` (ASCII MDL ingest) (https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L3916-L4698)
 Mdl = class.class(KaitaiStruct)
 
 function Mdl:_init(io, parent, root)
@@ -399,7 +399,7 @@ end
 -- - 128: Alpha (transparency/opacity, 1 float)
 -- 
 -- Reference: https://github.com/OpenKotOR/PyKotor/wiki/MDL-MDX-File-Format - Additional Controller Types section
--- Reference: https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407 — Controller type definitions
+-- Reference: https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407 — Controller type definitions
 -- Reference: https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/binmdl.html - Comprehensive controller list
 -- 
 -- Purpose unknown, typically 0xFFFF.

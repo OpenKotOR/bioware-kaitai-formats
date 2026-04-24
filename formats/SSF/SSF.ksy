@@ -30,10 +30,10 @@ doc: |
   Each SSF file contains exactly 28 sound slots, mapping to different game events and actions.
 
   Binary Format:
-  - Header (12 bytes): File type signature, version, and offset to sounds array (usually 12)
-  - Sounds Array (112 bytes at sounds_offset): 28 uint32 values representing StrRefs (0xFFFFFFFF = -1 = no sound)
+  - Header (12 (0xc) bytes): File type signature, version, and offset to sounds array (usually 12)
+  - Sounds Array (112 (0x70) bytes at sounds_offset): 28 uint32 values representing StrRefs (0xFFFFFFFF = -1 = no sound)
 
-  Vanilla KotOR SSFs are typically 136 bytes total: after the 28 StrRefs, many files append 12 bytes
+  Vanilla KotOR SSFs are typically 136 (0x88) bytes total: after the 28 StrRefs, many files append 12 (0xc) bytes
   of 0xFFFFFFFF padding; that trailer is not part of the header and is not modeled here.
 
   Sound Slots (in order):

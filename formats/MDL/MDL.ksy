@@ -20,8 +20,8 @@ meta:
     pykotor_io_mdl_binary_reader: https://github.com/OpenKotOR/PyKotor/blob/e03ea2c077f1be1d6704d228d156748a9cc3d0eb/Libraries/PyKotor/src/pykotor/resource/formats/mdl/io_mdl.py#L2260-L2408
     pykotor_io_mdl_kaitai_probe: https://github.com/OpenKotOR/PyKotor/blob/e03ea2c077f1be1d6704d228d156748a9cc3d0eb/Libraries/PyKotor/src/pykotor/resource/formats/mdl/io_mdl.py#L2332-L2338
     pykotor_mdl_data: https://github.com/OpenKotOR/PyKotor/blob/e03ea2c077f1be1d6704d228d156748a9cc3d0eb/Libraries/PyKotor/src/pykotor/resource/formats/mdl/mdl_data.py#L1283-L1322
-    pykotor_vendor_mdlops: https://github.com/th3w1zard1/mdlops/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/MDLOpsM.pm#L342-L407
-    pykotor_mdlops_upstream_mirror: https://github.com/th3w1zard1/mdlops/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/MDLOpsM.pm#L342-L4698
+    mdlops: https://github.com/OpenKotOR/MDLOps/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/MDLOpsM.pm#L342-L407
+    mdlops_upstream_mirror: https://github.com/OpenKotOR/MDLOps/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/MDLOpsM.pm#L342-L4698
     xoreos_model_kotor_load: https://github.com/xoreos/xoreos/blob/89c99d2a93c23f3ba2b1218759e38775e4f2bdf9/src/graphics/aurora/model_kotor.cpp#L184-L267
     xoreos_model_kotor_parser_context: https://github.com/xoreos/xoreos/blob/89c99d2a93c23f3ba2b1218759e38775e4f2bdf9/src/graphics/aurora/model_kotor.cpp#L123-L140
     xoreos_model_kotor_h_parser_context: https://github.com/xoreos/xoreos/blob/89c99d2a93c23f3ba2b1218759e38775e4f2bdf9/src/graphics/aurora/model_kotor.h#L45-L79
@@ -35,8 +35,8 @@ doc: |
   BioWare MDL Model Format
 
   The MDL file contains:
-  - File header (12 bytes)
-  - Model header (196 bytes) which begins with a Geometry header (80 bytes)
+  - File header (12 (0xc) bytes)
+  - Model header (196 (0xc4) bytes) which begins with a Geometry header (80 (0x50) bytes)
   - Name offset array + name strings
   - Animation offset array + animation headers + animation nodes
   - Node hierarchy with geometry data
@@ -59,8 +59,8 @@ doc-ref:
   - "https://github.com/xoreos/xoreos-docs/blob/4e1c197aa09b532ef466ff8ceccfd6221e80c3c9/specs/torlack/binmdl.html xoreos-docs — Torlack binmdl (controller / Aurora background)"
   - "https://github.com/modawan/reone/blob/61531089341caf5827abbc54346c8c959b03d449/src/libs/graphics/format/mdlmdxreader.cpp#L55-L118 reone — MdlMdxReader::load"
   - "https://github.com/KobaltBlu/KotOR.js/blob/83b27e2b4c61dfa6723e67995592c53ac88b21d9/src/odyssey/OdysseyModel.ts#L56-L170 KotOR.js — OdysseyModel binary constructor"
-  - "https://github.com/th3w1zard1/mdlops/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/MDLOpsM.pm#L342-L407 Community MDLOps — controller name table"
-  - "https://github.com/th3w1zard1/mdlops/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/MDLOpsM.pm#L3916-L4698 Community MDLOps — `readasciimdl` (ASCII MDL ingest)"
+  - "https://github.com/OpenKotOR/MDLOps/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/MDLOpsM.pm#L342-L407 Community MDLOps — controller name table"
+  - "https://github.com/OpenKotOR/MDLOps/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/MDLOpsM.pm#L3916-L4698 Community MDLOps — `readasciimdl` (ASCII MDL ingest)"
 
 seq:
   - id: file_header
@@ -73,7 +73,7 @@ instances:
     value: 12
     doc: |
       MDL "data start" offset. Most offsets in this file are relative to the start of the MDL data
-      section, which begins immediately after the 12-byte file header.
+      section, which begins immediately after the 12 (0xc)-byte file header.
 
   name_offsets:
     type: u4
@@ -120,7 +120,7 @@ instances:
 
 types:
   file_header:
-    doc: MDL file header (12 bytes)
+    doc: MDL file header (12 (0xc) bytes)
     seq:
       - id: unused
         type: u4
@@ -190,7 +190,7 @@ types:
     seq:
       - id: offset
         type: s4
-        doc: Offset to array (relative to MDL data start, offset 12)
+        doc: Offset to array (relative to MDL data start, offset 12 (0xc))
       - id: count
         type: u4
         doc: Number of used entries
@@ -200,13 +200,13 @@ types:
 
   model_header:
     doc: |
-      Model header (196 bytes) starting at offset 12 (data_start).
+      Model header (196 (0xc4) bytes) starting at offset 12 (0xc) (data_start).
       This matches MDLOps / PyKotor's _ModelHeader layout: a geometry header followed by
       model-wide metadata, offsets, and counts.
     seq:
       - id: geometry
         type: geometry_header
-        doc: Geometry header (80 bytes)
+        doc: Geometry header (80 (0x50) bytes)
       - id: model_type
         type: u1
         enum: bioware_mdl_common::model_classification
@@ -323,11 +323,11 @@ types:
         pos: _root.data_start + _root.animation_offsets[anim_index]
 
   animation_header:
-    doc: Animation header (136 bytes = 80 byte geometry header + 56 byte animation header)
+    doc: Animation header (136 (0x88) bytes = 80 (0x50) byte geometry header + 56 (0x38) byte animation header)
     seq:
       - id: geo_header
         type: geometry_header
-        doc: Standard 80-byte geometry header (geometry_type = 0x01 for animation)
+        doc: Standard 80 (0x50)-byte geometry header (geometry_type = 0x01 for animation)
       - id: animation_length
         type: f4
         doc: Duration of animation in seconds
@@ -354,7 +354,7 @@ types:
         doc: Purpose unknown
 
   animation_event:
-    doc: Animation event (36 bytes)
+    doc: Animation event (36 (0x24) bytes)
     seq:
       - id: activation_time
         type: f4
@@ -367,7 +367,7 @@ types:
         doc: Name of event (null-terminated string, e.g., "detonate")
 
   node:
-    doc: Node structure - starts with 80-byte header, followed by type-specific sub-header
+    doc: Node structure - starts with 80 (0x50)-byte header, followed by type-specific sub-header
     seq:
       - id: header
         type: node_header
@@ -400,7 +400,7 @@ types:
         if: header.node_type == 2081
 
   node_header:
-    doc: Node header (80 bytes) - present in all node types
+    doc: Node header (80 (0x50) bytes) - present in all node types
     seq:
       - id: node_type
         type: u2
@@ -488,7 +488,7 @@ types:
 
 
   light_header:
-    doc: Light header (92 bytes)
+    doc: Light header (92 (0x5c) bytes)
     seq:
       - id: unknown
         type: f4
@@ -557,7 +557,7 @@ types:
         doc: 1 if light intensity fades with distance, 0 otherwise
 
   emitter_header:
-    doc: Emitter header (224 bytes)
+    doc: Emitter header (224 (0xe0) bytes)
     seq:
       - id: dead_space
         type: f4
@@ -639,7 +639,7 @@ types:
         doc: Emitter behavior flags bitmask (P2P, bounce, inherit, etc.)
 
   reference_header:
-    doc: Reference header (36 bytes)
+    doc: Reference header (36 (0x24) bytes)
     seq:
       - id: model_resref
         type: str
@@ -652,7 +652,7 @@ types:
         doc: 1 if model can be detached and reattached dynamically, 0 if permanent
 
   trimesh_header:
-    doc: Trimesh header (332 bytes KOTOR 1, 340 bytes KOTOR 2)
+    doc: Trimesh header (332 (0x14c) bytes KOTOR 1, 340 (0x154) bytes KOTOR 2)
     seq:
       - id: function_pointer_0
         type: u4
@@ -863,7 +863,7 @@ types:
         doc: Offset to vertex coordinate array in MDL file (for walkmesh/AABB nodes)
 
   skinmesh_header:
-    doc: Skinmesh header (432 bytes KOTOR 1, 440 bytes KOTOR 2) - extends trimesh_header
+    doc: Skinmesh header (432 (0x1b0) bytes KOTOR 1, 440 (0x1b8) bytes KOTOR 2) - extends trimesh_header
     seq:
       - id: trimesh_base
         type: trimesh_header
@@ -919,7 +919,7 @@ types:
         doc: Padding for alignment
 
   animmesh_header:
-    doc: Animmesh header (388 bytes KOTOR 1, 396 bytes KOTOR 2) - extends trimesh_header
+    doc: Animmesh header (388 (0x184) bytes KOTOR 1, 396 (0x18c) bytes KOTOR 2) - extends trimesh_header
     seq:
       - id: trimesh_base
         type: trimesh_header
@@ -937,7 +937,7 @@ types:
         doc: Unknown float values
 
   danglymesh_header:
-    doc: Danglymesh header (360 bytes KOTOR 1, 368 bytes KOTOR 2) - extends trimesh_header
+    doc: Danglymesh header (360 (0x168) bytes KOTOR 1, 368 (0x170) bytes KOTOR 2) - extends trimesh_header
     seq:
       - id: trimesh_base
         type: trimesh_header
@@ -965,7 +965,7 @@ types:
         doc: Purpose unknown
 
   aabb_header:
-    doc: AABB (Axis-Aligned Bounding Box) header (336 bytes KOTOR 1, 344 bytes KOTOR 2) - extends trimesh_header
+    doc: AABB (Axis-Aligned Bounding Box) header (336 (0x150) bytes KOTOR 1, 344 (0x158) bytes KOTOR 2) - extends trimesh_header
     seq:
       - id: trimesh_base
         type: trimesh_header
@@ -975,7 +975,7 @@ types:
         doc: Purpose unknown
 
   lightsaber_header:
-    doc: Lightsaber header (352 bytes KOTOR 1, 360 bytes KOTOR 2) - extends trimesh_header
+    doc: Lightsaber header (352 (0x160) bytes KOTOR 1, 360 (0x168) bytes KOTOR 2) - extends trimesh_header
     seq:
       - id: trimesh_base
         type: trimesh_header
@@ -997,7 +997,7 @@ types:
         doc: Purpose unknown
 
   controller:
-    doc: Controller structure (16 bytes) - defines animation data for a node property over time
+    doc: Controller structure (16 (0x10) bytes) - defines animation data for a node property over time
     seq:
       - id: type
         type: u4
@@ -1072,7 +1072,7 @@ types:
           - 128: Alpha (transparency/opacity, 1 float)
 
           Reference: https://github.com/OpenKotOR/PyKotor/wiki/MDL-MDX-File-Format - Additional Controller Types section
-          Reference: https://github.com/th3w1zard1/mdlops/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/MDLOpsM.pm#L342-L407 — Controller type definitions
+          Reference: https://github.com/OpenKotOR/MDLOps/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/MDLOpsM.pm#L342-L407 — Controller type definitions
           Reference: https://github.com/xoreos/xoreos-docs/blob/4e1c197aa09b532ef466ff8ceccfd6221e80c3c9/specs/torlack/binmdl.html - Comprehensive controller list
       - id: unknown
         type: u2
@@ -1095,7 +1095,7 @@ types:
         type: u1
         repeat: expr
         repeat-expr: 3
-        doc: Padding bytes for 16-byte alignment
+        doc: Padding bytes for 16 (0x10)-byte alignment
     instances:
       uses_bezier:
         value: (column_count & 0x10) != 0

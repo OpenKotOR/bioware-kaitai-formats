@@ -54,10 +54,10 @@ namespace Kaitai
     /// Reference: <a href="https://github.com/KobaltBlu/KotOR.js/blob/master/src/odyssey/OdysseyModel.ts#L56-L170">KotOR.js — OdysseyModel binary constructor</a>
     /// </remarks>
     /// <remarks>
-    /// Reference: <a href="https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407">Community MDLOps — controller name table</a>
+    /// Reference: <a href="https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407">Community MDLOps — controller name table</a>
     /// </remarks>
     /// <remarks>
-    /// Reference: <a href="https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L3916-L4698">Community MDLOps — `readasciimdl` (ASCII MDL ingest)</a>
+    /// Reference: <a href="https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L3916-L4698">Community MDLOps — `readasciimdl` (ASCII MDL ingest)</a>
     /// </remarks>
     public partial class Mdl : KaitaiStruct
     {
@@ -474,7 +474,7 @@ namespace Kaitai
             /// - 128: Alpha (transparency/opacity, 1 float)
             /// 
             /// Reference: https://github.com/OpenKotOR/PyKotor/wiki/MDL-MDX-File-Format - Additional Controller Types section
-            /// Reference: https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407 — Controller type definitions
+            /// Reference: https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407 — Controller type definitions
             /// Reference: https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/binmdl.html - Comprehensive controller list
             /// </summary>
             public BiowareMdlCommon.ControllerType Type { get { return _type; } }

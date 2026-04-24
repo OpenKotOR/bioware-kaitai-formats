@@ -42,10 +42,10 @@
       "default_branch": "main",
       "replaces": ["th3w1zard1/TSLPatcher"]
     },
-    "th3w1zard1/mdlops": {
+    "OpenKotOR/MDLOps": {
       "sha": "7e40846d36acb5118e2e9feb2fd53620c29be540",
       "default_branch": "master",
-      "replaces": ["th3w1zard1/mdlops"]
+      "replaces": ["OpenKotOR/MDLOps"]
     },
     "ME3Tweaks/LegendaryExplorer": {
       "sha": "6928aaf5be0ef97b984e9c51a192db9602aa0e42",

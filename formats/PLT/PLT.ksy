@@ -40,8 +40,8 @@ doc: |
   **reone:** the KotOR-focused fork does not ship a standalone PLT body reader; see `meta.xref.reone_resource_type_plt_note` for the numeric `Plt` type id only.
   
   Binary Format Structure:
-  - Header (24 bytes): Signature, Version, Unknown fields, Width, Height
-  - Pixel Data: Array of 2-byte pixel entries (color index + palette group index)
+  - Header (24 (0x18) bytes): Signature, Version, Unknown fields, Width, Height
+  - Pixel Data: Array of 2 (0x2)-byte pixel entries (color index + palette group index)
   
   Palette System:
   PLT files work in conjunction with external palette files (.pal files) that contain the actual
@@ -72,11 +72,11 @@ doc-ref:
 seq:
   - id: header
     type: plt_header
-    doc: PLT file header (24 bytes)
+    doc: PLT file header (24 (0x18) bytes)
   
   - id: pixel_data
     type: pixel_data_section
-    doc: Array of pixel entries (width × height entries, 2 bytes each)
+    doc: Array of pixel entries (width × height entries, 2 (0x2) bytes each)
 
 types:
   plt_header:
@@ -102,13 +102,13 @@ types:
       - id: unknown1
         type: u4
         doc: |
-          Unknown field (4 bytes).
+          Unknown field (4 (0x4) bytes).
           Purpose is unknown, may be reserved for future use or internal engine flags.
       
       - id: unknown2
         type: u4
         doc: |
-          Unknown field (4 bytes).
+          Unknown field (4 (0x4) bytes).
           Purpose is unknown, may be reserved for future use or internal engine flags.
       
       - id: width
@@ -132,7 +132,7 @@ types:
         repeat-expr: _root.header.width * _root.header.height
         doc: |
           Array of pixel entries, stored row by row, left to right, top to bottom.
-          Total size = width × height × 2 bytes.
+          Total size = width × height × 2 (0x2) bytes.
           Each pixel entry contains a color index and palette group index.
   
   plt_pixel:

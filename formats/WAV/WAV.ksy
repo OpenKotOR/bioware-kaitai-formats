@@ -27,12 +27,12 @@ meta:
       `fmt ` chunk `audio_format` / `wFormatTag`: `formats/Common/bioware_common.ksy` → `riff_wave_format_tag`.
     reone_wavreader: https://github.com/modawan/reone/blob/61531089341caf5827abbc54346c8c959b03d449/src/libs/audio/format/wavreader.cpp#L30-L56
     github_kobaltblu_kotor_js_audiofile: |
-      https://github.com/KobaltBlu/KotOR.js — `src/audio/AudioFile.ts`: **`fakeHeaderTest`** **10**; **`ArrayMatch`** → **470**-byte strip **`slice(470, …)`** **117–120**; MP3-in-WAV **`riffSize == 50`** **114+** / branch **134+**; **`readWavHeader`** / **`fmt`** **214+**.
+      https://github.com/KobaltBlu/KotOR.js — `src/audio/AudioFile.ts`: **`fakeHeaderTest`** **10**; **`ArrayMatch`** → 470 (0x1d6)-byte strip **`slice(470, …)`** **117–120**; MP3-in-WAV **`riffSize == 50`** **114+** / branch **134+**; **`readWavHeader`** / **`fmt`** **214+**.
     xoreos_docs_bioware_specs_tree: https://github.com/xoreos/xoreos-docs/tree/4e1c197aa09b532ef466ff8ceccfd6221e80c3c9/specs/bioware
 doc: |
   **KotOR WAV:** standard **RIFF/WAVE** (`fmt ` + `data`) plus engine-specific cases (VO vs SFX obfuscation wrappers,
-  MP3-in-WAV quirks) described on the PyKotor wiki — this `.ksy` models the **core RIFF chunk tree**; 470-byte SFX /
-  20-byte VO prefixes are application-level.
+  MP3-in-WAV quirks) described on the PyKotor wiki — this `.ksy` models the **core RIFF chunk tree**; 470 (0x1d6)-byte SFX /
+  20 (0x14)-byte VO prefixes are application-level.
 
   `wFormatTag` / PCM layout notes: `bioware_common.ksy` → `riff_wave_format_tag`.
 
@@ -75,7 +75,7 @@ types:
       - id: riff_size
         type: u4
         doc: |
-          File size minus 8 bytes (RIFF_ID + RIFF_SIZE itself)
+          File size minus 8 (0x8) bytes (RIFF_ID + RIFF_SIZE itself)
           For MP3-in-WAV format, this is 50
           Reference: https://github.com/OpenKotOR/PyKotor/wiki/Audio-and-Localization-Formats#wav
 
@@ -223,5 +223,5 @@ types:
         if: _parent.size % 2 == 1
         doc: |
           Padding byte to align to word boundary (only if chunk size is odd)
-          RIFF chunks must be aligned to 2-byte boundaries
-          Reference: https://github.com/OpenKotOR/PyKotor/blob/e03ea2c077f1be1d6704d228d156748a9cc3d0eb/Libraries/PyKotor/src/pykotor/resource/formats/wav/io_wav.py#L243-L245 (unknown chunk skip + optional 1-byte word alignment)
+          RIFF chunks must be aligned to 2 (0x2)-byte boundaries
+          Reference: https://github.com/OpenKotOR/PyKotor/blob/e03ea2c077f1be1d6704d228d156748a9cc3d0eb/Libraries/PyKotor/src/pykotor/resource/formats/wav/io_wav.py#L243-L245 (unknown chunk skip + optional 1 (0x1)-byte word alignment)

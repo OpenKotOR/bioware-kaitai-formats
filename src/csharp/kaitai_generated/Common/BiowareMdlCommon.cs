@@ -36,7 +36,7 @@ namespace Kaitai
     /// Reference: <a href="https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/binmdl.html">xoreos-docs — Torlack binmdl (controller IDs)</a>
     /// </remarks>
     /// <remarks>
-    /// Reference: <a href="https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407">Community MDLOps — `MDLOpsM.pm` controller name table (legacy PyKotor `vendor/MDLOps` path 404 on current default branch)</a>
+    /// Reference: <a href="https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407">Community MDLOps — `MDLOpsM.pm` controller name table (legacy PyKotor `vendor/MDLOps` path 404 on current default branch)</a>
     /// </remarks>
     public partial class BiowareMdlCommon : KaitaiStruct
     {

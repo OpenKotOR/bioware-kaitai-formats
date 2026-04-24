@@ -60,19 +60,6 @@ def build_rules(repos: dict[str, dict]) -> list[tuple[str, str]]:
             "https://github.com/th3w1zard1/TSLPatcher/tree/ad04700a47086c25e1c6ef4b4961f76dfa8cc6a5/",
         )
     )
-    # Already-forked repos that still used ``/blob/master/`` in-tree.
-    rules.append(
-        (
-            "https://github.com/th3w1zard1/mdlops/blob/master/",
-            "https://github.com/th3w1zard1/mdlops/blob/7e40846d36acb5118e2e9feb2fd53620c29be540/",
-        )
-    )
-    rules.append(
-        (
-            "https://github.com/th3w1zard1/mdlops/tree/master/",
-            "https://github.com/th3w1zard1/mdlops/tree/7e40846d36acb5118e2e9feb2fd53620c29be540/",
-        )
-    )
     return rules
 
 
@@ -89,7 +76,11 @@ def emit_inventory(files: list[Path]) -> None:
         print(f"{o}/{r}")
 
 
-def apply_to_files(files: list[Path], rules: list[tuple[str, str]], dry: bool) -> int:
+def apply_to_files(
+    files: list[Path],
+    rules: list[tuple[str, str]],
+    dry: bool = False,
+) -> int:
     changed_files = 0
     for path in files:
         text = path.read_text(encoding="utf-8")
@@ -111,7 +102,7 @@ def main() -> int:
     ap.add_argument(
         "--emit-inventory",
         action="store_true",
-        help="List unique github.com owner/repo pairs under formats/**/*.ksy and exit",
+        help="List unique github.com owner/repo pairs undereee formats/**/*.ksy and exit",
     )
     args = ap.parse_args()
     repo_root: Path = args.root.resolve()

@@ -41,7 +41,7 @@ doc: |
   Format Structure:
   - Line-based ASCII text file (UTF-8 or Windows-1252)
   - Commands are case-insensitive but conventionally lowercase
-  - Empty TXI files (0 bytes) are valid and use default settings
+  - Empty TXI files (0 (0x0) bytes) are valid and use default settings
   - A TXI can be embedded at the end of a .tpc file or exist as a separate .txi file
 
   Command Formats (from PyKotor implementation):

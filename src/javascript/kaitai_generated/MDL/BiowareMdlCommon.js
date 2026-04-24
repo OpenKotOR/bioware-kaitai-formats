@@ -24,7 +24,7 @@
  * @see {@link https://github.com/xoreos/xoreos-tools/blob/master/README.md#L17-L43|xoreos-tools — shipped CLI inventory (no MDL/MDX-specific tool)}
  * @see {@link https://github.com/xoreos/xoreos-docs/blob/master/specs/kotor_mdl.html|xoreos-docs — KotOR MDL overview}
  * @see {@link https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/binmdl.html|xoreos-docs — Torlack binmdl (controller IDs)}
- * @see {@link https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407|Community MDLOps — `MDLOpsM.pm` controller name table (legacy PyKotor `vendor/MDLOps` path 404 on current default branch)}
+ * @see {@link https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407|Community MDLOps — `MDLOpsM.pm` controller name table (legacy PyKotor `vendor/MDLOps` path 404 on current default branch)}
  */
 
 var BiowareMdlCommon = (function() {

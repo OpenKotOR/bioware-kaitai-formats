@@ -68,11 +68,11 @@ class Mdl(KaitaiStruct):
     
     
     .. seealso::
-       Community MDLOps — controller name table - https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407
+       Community MDLOps — controller name table - https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407
     
     
     .. seealso::
-       Community MDLOps — `readasciimdl` (ASCII MDL ingest) - https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L3916-L4698
+       Community MDLOps — `readasciimdl` (ASCII MDL ingest) - https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L3916-L4698
     """
     def __init__(self, _io, _parent=None, _root=None):
         super(Mdl, self).__init__(_io)

@@ -17,7 +17,7 @@ namespace Kaitai
     /// full binary-vs-text scope rule.
     /// 
     /// Reference: https://github.com/OpenKotOR/PyKotor/wiki/MDL-MDX-File-Format — ASCII MDL Format section
-    /// Reference: https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L3916-L4698 — `readasciimdl` (Perl; line band matches former PyKotor vendor drop)
+    /// Reference: https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L3916-L4698 — `readasciimdl` (Perl; line band matches former PyKotor vendor drop)
     /// Binary wire IDs (for cross-checking ASCII integers): PyKotor wiki binary MDL section, xoreos-docs Torlack `binmdl.html`,
     /// and `formats/Common/bioware_mdl_common.ksy` (canonical enum tables; this ASCII spec does not duplicate them as local `enums:`).
     /// </summary>
@@ -40,7 +40,7 @@ namespace Kaitai
     /// Reference: <a href="https://github.com/OpenKotOR/bioware-kaitai-formats/blob/master/formats/Common/bioware_mdl_common.ksy">In-tree — shared MDL/MDX wire enums (cross-check ASCII numeric keywords)</a>
     /// </remarks>
     /// <remarks>
-    /// Reference: <a href="https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L3916-L4698">Community MDLOps — readasciimdl</a>
+    /// Reference: <a href="https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L3916-L4698">Community MDLOps — readasciimdl</a>
     /// </remarks>
     public partial class MdlAscii : KaitaiStruct
     {

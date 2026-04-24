@@ -55,9 +55,9 @@ doc: |
   efficient random access to vertices, faces, materials, and acceleration structures.
 
   Binary Format Structure:
-  - File Header (8 bytes): Magic "BWM " and version "V1.0"
-  - Walkmesh Properties (52 bytes): Type, hook vectors, position
-  - Data Table Offsets (84 bytes): Counts and offsets for all data tables
+  - File Header (8 (0x8) bytes): Magic "BWM " and version "V1.0"
+  - Walkmesh Properties (52 (0x34) bytes): Type, hook vectors, position
+  - Data Table Offsets (84 (0x54) bytes): Counts and offsets for all data tables
   - Vertices Array: Array of float3 (x, y, z) per vertex
   - Face Indices Array: Array of uint32 triplets (vertex indices per face)
   - Materials Array: Array of uint32 (SurfaceMaterial ID per face)
@@ -73,15 +73,15 @@ doc: |
 seq:
   - id: header
     type: bwm_header
-    doc: BWM file header (8 bytes) - magic and version signature
+    doc: BWM file header (8 (0x8) bytes) - magic and version signature
 
   - id: walkmesh_properties
     type: walkmesh_properties
-    doc: Walkmesh properties section (52 bytes) - type, hooks, position
+    doc: Walkmesh properties section (52 (0x34) bytes) - type, hooks, position
 
   - id: data_table_offsets
     type: data_table_offsets
-    doc: Data table offsets section (84 bytes) - counts and offsets for all data tables
+    doc: Data table offsets section (84 (0x54) bytes) - counts and offsets for all data tables
 
 instances:
   vertices:

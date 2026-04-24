@@ -21,7 +21,7 @@ local enum = require("enum")
 -- See also: xoreos-tools — shipped CLI inventory (no MDL/MDX-specific tool) (https://github.com/xoreos/xoreos-tools/blob/master/README.md#L17-L43)
 -- See also: xoreos-docs — KotOR MDL overview (https://github.com/xoreos/xoreos-docs/blob/master/specs/kotor_mdl.html)
 -- See also: xoreos-docs — Torlack binmdl (controller IDs) (https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/binmdl.html)
--- See also: Community MDLOps — `MDLOpsM.pm` controller name table (legacy PyKotor `vendor/MDLOps` path 404 on current default branch) (https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407)
+-- See also: Community MDLOps — `MDLOpsM.pm` controller name table (legacy PyKotor `vendor/MDLOps` path 404 on current default branch) (https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407)
 BiowareMdlCommon = class.class(KaitaiStruct)
 
 BiowareMdlCommon.ControllerType = enum.Enum {

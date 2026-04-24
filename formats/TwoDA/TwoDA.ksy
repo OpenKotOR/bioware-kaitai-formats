@@ -38,12 +38,12 @@ doc: |
   - Cell values (data at row/column intersections)
   
   Binary Format Structure:
-  - File Header (9 bytes): Magic "2DA " (space-padded), version "V2.b", and newline
+  - File Header (9 (0x9) bytes): Magic "2DA " (space-padded), version "V2.b", and newline
   - Column Headers Section: Tab-separated column names, terminated by null byte
-  - Row Count (4 bytes): uint32 indicating number of data rows
+  - Row Count (4 (0x4) bytes): uint32 indicating number of data rows
   - Row Labels Section: Tab-separated row labels (one per row)
   - Cell Offsets Array: Array of uint16 offsets (rowCount * columnCount entries)
-  - Data Size (2 bytes): uint16 indicating total size of cell data section
+  - Data Size (2 (0x2) bytes): uint16 indicating total size of cell data section
   - Cell Values Section: Null-terminated strings at offsets specified in offsets array
   
   The format uses an offset-based string table for cell values, allowing efficient
@@ -77,7 +77,7 @@ params:
 seq:
   - id: header
     type: twoda_header
-    doc: TwoDA file header (9 bytes) - magic "2DA ", version "V2.b", and newline character
+    doc: TwoDA file header (9 (0x9) bytes) - magic "2DA ", version "V2.b", and newline character
   
   - id: column_headers_raw
     type: strz

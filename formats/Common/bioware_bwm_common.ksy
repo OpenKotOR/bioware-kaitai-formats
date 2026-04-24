@@ -40,7 +40,7 @@ enums:
     0x204d5742:
       id: bwm_space
       doc: |
-        ASCII ``BWM `` as LE ``u32``. reone reads 8-byte ``BWM V1.0`` prefix; xoreos ``WalkmeshLoader`` documents magic + version.
+        ASCII ``BWM `` as LE ``u32``. reone reads 8 (0x8)-byte ``BWM V1.0`` prefix; xoreos ``WalkmeshLoader`` documents magic + version.
         https://github.com/modawan/reone/blob/61531089341caf5827abbc54346c8c959b03d449/src/libs/graphics/format/bwmreader.cpp#L27-L30
         https://github.com/xoreos/xoreos/blob/89c99d2a93c23f3ba2b1218759e38775e4f2bdf9/src/engines/kotorbase/path/walkmeshloader.cpp#L65-L71
 
@@ -80,7 +80,7 @@ enums:
       doc: |
         ``0xFFFFFFFC`` (``-4`` as ``s4``) — negative Z half-space. https://github.com/KobaltBlu/KotOR.js/blob/83b27e2b4c61dfa6723e67995592c53ac88b21d9/src/odyssey/OdysseyWalkMesh.ts#L301-L395
 
-  # PyKotor `BWMType` / reone `WalkmeshType` / KotOR.js `OdysseyWalkMeshType` — on-disk u32 after 8-byte BWM header.
+  # PyKotor `BWMType` / reone `WalkmeshType` / KotOR.js `OdysseyWalkMeshType` — on-disk u32 after 8 (0x8)-byte BWM header.
   bwm_walkmesh_kind:
     0: placeable_or_door
     1: area

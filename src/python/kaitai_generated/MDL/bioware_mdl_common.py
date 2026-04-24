@@ -51,7 +51,7 @@ class BiowareMdlCommon(KaitaiStruct):
 
 
     .. seealso::
-       Community MDLOps — `MDLOpsM.pm` controller name table (legacy PyKotor `vendor/MDLOps` path 404 on current default branch) - https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407
+       Community MDLOps — `MDLOpsM.pm` controller name table (legacy PyKotor `vendor/MDLOps` path 404 on current default branch) - https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407
     """
 
     class ControllerType(IntEnum):

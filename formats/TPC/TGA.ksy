@@ -40,11 +40,11 @@ meta:
       **`ResType::Tga = 3`:** `include/reone/resource/types.h` **33**; extension **`"tga"`:** `src/libs/resource/typeutil.cpp` **29**.
       **Loader:** `src/libs/graphics/format/tgareader.cpp` **`TgaReader::load`** **29–74** (id length, colour-map byte skip **32**, image type → **`TGADataType`** **34–42**, skip colour-map spec **45**, width/height **47–48**, bpp validation **50–53**, descriptor / flip rejection **55–59**, cubemap 6:1 **61–70**, skip image ID **73**, **`loadTexture`** **74**),
       **`loadTexture`** **77–90**, **`readPixels` / `readPixelsRLE`** **93–140**, predicates **143–152**.
-      **Writer:** `src/libs/graphics/format/tgawriter.cpp` **`save`** **34–73** (18-byte header **28**, fields **46–61**, raw vs per-scanline **RLE** **66–72**), **`getTexturePixels`** **76–120** (maps `PixelFormat` including **DXT1/DXT5** to exported TGA data types **86–94**).
+      **Writer:** `src/libs/graphics/format/tgawriter.cpp` **`save`** **34–73** (18 (0x12)-byte header **28**, fields **46–61**, raw vs per-scanline **RLE** **66–72**), **`getTexturePixels`** **76–120** (maps `PixelFormat` including **DXT1/DXT5** to exported TGA data types **86–94**).
       **Provider order:** `src/libs/resource/provider/textures.cpp` **72–77** (`find` `ResType::Tga`, `TgaReader`); **TPC branch** follows (**83–97** in same file).
       **In-game TGA:** `src/libs/game/gui/saveload.cpp` **176–181** loads ERF **`screen`/`ResType::Tga`** via `TgaReader`.
       **TPC↔TGA tool:** `src/libs/tools/legacy/tpc.cpp` **`toTGA`** **41–67** (`TgaWriter` on decoded `TpcReader` texture).
-      **Test:** `test/graphics/format/tgareader.cpp` **`TEST(TgaReader, should_load_tga)`** **28–58** (minimal grayscale 1×1 bytes).
+      **Test:** `test/graphics/format/tgareader.cpp` **`TEST(TgaReader, should_load_tga)`** **28–58** (minimal grayscale 1×1 (0x1) bytes).
     github_kobaltblu_kotor_js_tga: |
       https://github.com/KobaltBlu/KotOR.js (also `github.com/kobaltblu/kotor.js`); in-repo snapshot `_upstream_refs/kotor.js/`:
       **`"tga" : 3`:** `src/resource/ResourceTypes.ts` **15**; label **`'TGA Image'`:** `src/resource/ResourceTypeInfo.ts` **15**.
@@ -65,7 +65,7 @@ meta:
     xoreos_docs_bioware_specs_tree: https://github.com/xoreos/xoreos-docs/tree/4e1c197aa09b532ef466ff8ceccfd6221e80c3c9/specs/bioware
     xoreos_docs_kotor_mdl: https://github.com/xoreos/xoreos-docs/blob/4e1c197aa09b532ef466ff8ceccfd6221e80c3c9/specs/kotor_mdl.html
 doc: |
-  **TGA** (Truevision Targa): 18-byte header, optional color map, image id, then raw or RLE pixels. KotOR often
+  **TGA** (Truevision Targa): 18 (0x12)-byte header, optional color map, image id, then raw or RLE pixels. KotOR often
   converts authoring TGAs to **TPC** for shipping.
 
   Shared header enums: `formats/Common/tga_common.ksy`.
@@ -83,7 +83,7 @@ doc-ref:
 seq:
   - id: id_length
     type: u1
-    doc: Length of image ID field (0-255 bytes)
+    doc: Length of image ID field (0-255 (0xff) bytes)
   
   - id: color_map_type
     type: u1

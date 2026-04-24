@@ -63,7 +63,7 @@ seq:
       Single-letter probability block (no context).
       Used for generating the first character of names.
       Contains start/middle/end probability arrays, each with letter_count floats.
-      Total size: letter_count × 3 × 4 bytes = 336 bytes for KotOR (28 chars).
+      Total size: letter_count × 3 × 4 (0x4) bytes = 336 (0x150) bytes for KotOR (28 chars).
   
   - id: double_letter_blocks
     type: double_letter_blocks_array
@@ -72,7 +72,7 @@ seq:
       Array of letter_count blocks, each indexed by the previous character.
       Used for generating the second character based on the first character.
       Each block contains start/middle/end probability arrays.
-      Total size: letter_count × 3 × letter_count × 4 bytes = 9,408 bytes for KotOR.
+      Total size: letter_count × 3 × letter_count × 4 (0x4) bytes = 9,408 (0x198) bytes for KotOR.
   
   - id: triple_letter_blocks
     type: triple_letter_blocks_array
@@ -82,7 +82,7 @@ seq:
       Each block is indexed by the previous two characters.
       Used for generating third and subsequent characters.
       Each block contains start/middle/end probability arrays.
-      Total size: letter_count × letter_count × 3 × letter_count × 4 bytes = 73,472 bytes for KotOR.
+      Total size: letter_count × letter_count × 3 × letter_count × 4 (0x4) bytes = 73,472 (0x1d8) bytes for KotOR.
 
 types:
   letter_block:

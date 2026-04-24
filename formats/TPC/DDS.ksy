@@ -17,11 +17,11 @@ meta:
       `OnResourceFreed` `00711010`, `OnResourceServiced` `00710f30`, …
       `CResDDS::OnResourceServiced` (`00710f30`): requires `this+0x10` non-null; early-outs if `+0x28` or `+0x34` or `+0x30` already set;
       then `MOV [this+0x34], EAX` with `EAX = *(this+0x10)`; `ADD EAX, 0x14` at `00710f58`; `MOV [this+0x30], EAX`; `MOV dword [this+0x28], 1`.
-      Same **0x14-byte skip** as KotOR II before exposing a payload pointer (standard `DDS ` + 124-byte header vs BioWare headerless branch is decided upstream of this slice).
+      Same **20 (0x14)-byte skip** as KotOR II before exposing a payload pointer (standard `DDS ` + 124 (0x7c)-byte header vs BioWare headerless branch is decided upstream of this slice).
       `CResDDS::OnResourceFreed` (`00711010`): clears `+0x28..+0x34` (32-bit fields).
       `CResDDS::GetDDSAttrib` (`00710ee0`): if `this+0x34` null, `RET 0x14` failure; else reads `uint32` at `[base+0]`, `[base+4]`, `uint8` at `[base+8]`, `uint32` at `[base+0xc]`, `uint32` at `[base+0x10]` from `this+0x34` into caller out-params (BioWare DDS prefix / first DWORDs of a Microsoft header, depending on what `+0x34` points at).
       `CAuroraCompressedTexture::GetCompressedTextureAttrib` (`007103c0`) calls `CRes::GetDemands` (`004064b0`) then dispatches to `GetDDSAttrib` (`00710ee0`) when `this+0x8` holds the `CResDDS` helper.
-      `CResTPC::OnResourceServiced` (`00712ff0`): `LEA EDX,[ESI+0x80]` / `MOV [this+0x3c],EDX` with `ESI=*(this+0x10)` — **128-byte TPC header** before DDS-like layout; reads flags at `[ESI+0xc]`, dimensions `uint16` at `+8/+0xa`, mip count byte `+0xd`; `SUB EAX,0x80` at `00713156` when sizing tail payload — aligns with `TPC.ksy` wrapper + embedded DDS body.
+      `CResTPC::OnResourceServiced` (`00712ff0`): `LEA EDX,[ESI+0x80]` / `MOV [this+0x3c],EDX` with `ESI=*(this+0x10)` — **128 (0x80)-byte TPC header** before DDS-like layout; reads flags at `[ESI+0xc]`, dimensions `uint16` at `+8/+0xa`, mip count byte `+0xd`; `SUB EAX,0x80` at `00713156` when sizing tail payload — aligns with `TPC.ksy` wrapper + embedded DDS body.
     nwmain_aurora_observed_behavior: |
       Binary: `/Other BioWare Engines/Aurora/nwmain.exe` — x64, `.text` 140001000–140d7bfff; MSVC symbols present on `CResDDS`.
       `CResDDS::CResDDS` (`1400f9a60`): calls `CRes::CRes` (`14018d920`), installs vtable at `0x140d92a70`, clears `this+0x60`, `+0x68`, `+0x70`, `+0x78` (qword state) and sets `dword [this+0x38]=1`.
@@ -34,20 +34,20 @@ meta:
       `CResDDS` primary vtable pointer **`0x009a9180`** installed from `FUN_0090bfb0` (`0090bfb0`) used by `~CResDDS` (`0090bf80`); base teardown `FUN_0061ab00` shared with other `CRes*` types.
       Vtable slots (`.rdata` `0x009a9180`): slot0 `~CResDDS` `0090bf80`, slot1 `return_minus_one` `00663820`, slot2 `return_zero` `00410c20`, slot3 `FUN_0090c7a0` (`0090c7a0`, clears `this+0x28..+0x34`), slot4 `CResDDS::OnResourceServiced` **`0090c040`**.
       `CResDDS::OnResourceServiced` (`0090c040`): uses `this+0x10` as resource bytes; stores copy at `this+0x34`, sets `this+0x30` to **`*(this+0x10) + 0x14`** (`ADD EDX,0x14` at `0090c090`), sets `this+0x28` to `1` — same **0x14** skip as K1, without an in-function literal compare to `0x20534444` (magic discrimination not inlined in this build).
-      `CResTPC::OnResourceServiced` (`00944550`): sets `this+0x3c` to **`*(this+0x10) + 0x80`** (`ADD EDX,0x80` at `009445bc`); byte tests on `[base+0xc]` for DXT block width; `SUB EAX,0x80` at `009447c8` when computing residual size — same **128-byte TPC** header constant as K1.
+      `CResTPC::OnResourceServiced` (`00944550`): sets `this+0x3c` to **`*(this+0x10) + 0x80`** (`ADD EDX,0x80` at `009445bc`); byte tests on `[base+0xc]` for DXT block width; `SUB EAX,0x80` at `009447c8` when computing residual size — same **128 (0x80)-byte TPC** header constant as K1.
       Runtime GL path: imports `glBindTexture`, `glGenTextures`, etc.; `CAuroraCompressedTexture` destructor `00907b30` (vtable ref `009a9100`).
     github_modawan_reone_dds_tpc_dxt: |
       https://github.com/modawan/reone — pinned commit `61531089341caf5827abbc54346c8c959b03d449` (line anchors below use `/blob/61531089341caf5827abbc54346c8c959b03d449/`).
       **Literal `Dds` resource type (Aurora type id 2033):** `include/reone/resource/types.h` line **57** (`Dds = 2033,` in `enum class ResourceType`).
       **Extension string `"dds"` ↔ `ResType::Dds`:** `src/libs/resource/typeutil.cpp` line **53** (`{ResType::Dds, "dds"},` in the `ResType` → extension table).
       **Runtime texture load path (TPC first, not a separate `.dds` reader in this tree):** `src/libs/resource/provider/textures.cpp` lines **64–97** try `ResType::Txi` / `ResType::Tga` / `ResType::Tpc` (`TpcReader` at **87–88**); there is **no** `find(..., ResType::Dds)` branch here — standalone DDS assets would need another loader if present elsewhere.
-      **TPC = 128-byte header + payload (DXT footprint matches Microsoft-style DDS block layout):** `src/libs/graphics/format/tpcreader.cpp` — header fields **29–37** (`dataSize`, width/height, encoding, mip count), **`_tpc.seek(128)`** at **65** before reading layer bytes, compressed mip byte math **112–118** (`DXT1` 8 bytes/block row, `DXT5` 16), `getPixelFormat()` **136–156** maps compressed `EncodingType::RGB` → `PixelFormat::DXT1`, `RGBA` → `DXT5`.
-      **Regression fixture (minimal TPC bytes, grayscale header):** `test/graphics/format/tpcreader.cpp` lines **27–56** (`TEST(TpcReader, should_load_tpc)` builds header + 112-byte pad + 1 mip byte).
+      **TPC = 128 (0x80)-byte header + payload (DXT footprint matches Microsoft-style DDS block layout):** `src/libs/graphics/format/tpcreader.cpp` — header fields **29–37** (`dataSize`, width/height, encoding, mip count), **`_tpc.seek(128)`** at **65** before reading layer bytes, compressed mip byte math **112–118** (`DXT1` 8 (0x8) bytes/block row, `DXT5` 16), `getPixelFormat()` **136–156** maps compressed `EncodingType::RGB` → `PixelFormat::DXT1`, `RGBA` → `DXT5`.
+      **Regression fixture (minimal TPC bytes, grayscale header):** `test/graphics/format/tpcreader.cpp` lines **27–56** (`TEST(TpcReader, should_load_tpc)` builds header + 112 (0x70)-byte pad + 1 mip byte).
       **DXT block decode used by compressed paths (same DXT1/DXT5 payload family as DDS):** `src/libs/graphics/dxtutil.cpp` **129–151** (`decompressDXT1` / `decompressDXT5`), declarations `include/reone/graphics/dxtutil.h` **24–25**; GL internal formats `src/libs/graphics/pixelutil.cpp` **44–47** (`GL_COMPRESSED_*_DXT*_EXT`).
     github_kobaltblu_kotor_js_dds_tpc: |
       https://github.com/KobaltBlu/KotOR.js (user path `github.com/kobaltblu/kotor.js`) — pinned commit `12f8f29183a1c08d461a350b8fea947120ab5cd1`.
       **Resource id `2033` / extension `dds`:** `src/resource/ResourceTypes.ts` line **52** (`"dds" : 2033,`); human label `src/resource/ResourceTypeInfo.ts` line **51** (`"dds" : 'DDS Image',`).
-      **128-byte TPC header constant:** `src/resource/TPCObject.ts` line **12** (`const TPCHeaderLength = 128;`); **TXI tail** after image bytes **50–66** (`getTXIData`, offset `getDataLength() + TPCHeaderLength`).
+      **128 (0x80)-byte TPC header constant:** `src/resource/TPCObject.ts` line **12** (`const TPCHeaderLength = 128;`); **TXI tail** after image bytes **50–66** (`getTXIData`, offset `getDataLength() + TPCHeaderLength`).
       **In-memory “DDS-like” mip structure from TPC (`getDDS`):** same file **79–263** — builds object with `mipmaps[]`, `mipmapCount`, `width`/`height`, `isCubemap`; lines **87–114** branch uncompressed vs compressed and assign legacy Three.js format constants **94–111** (`33776` DXT1, `33779` DXT5, `1023` RGBA); **121** `dataOffset = TPCHeaderLength`; **139–180** mip loop with DXT block size math **158–163**; **165–167** optional `dxt-js` decompress; **191–257** animated TXI `procedureType == 1` rebuild using `dxtJs.compress`/`decompress`.
       **Compressed texture upload path:** **428–432** `toCompressedTexture()` calls `this.getDDS(true)` then `OdysseyCompressedTexture`.
       **Worker decode (pixel extraction via `getDDS`):** `src/worker/worker-tex.ts` **25–54** (`const dds = tpc.getDDS(false);`, cubemap face loops).
@@ -72,7 +72,7 @@ meta:
     xoreos_docs_bioware_specs_tree: https://github.com/xoreos/xoreos-docs/tree/4e1c197aa09b532ef466ff8ceccfd6221e80c3c9/specs/bioware
     xoreos_docs_kotor_mdl: https://github.com/xoreos/xoreos-docs/blob/4e1c197aa09b532ef466ff8ceccfd6221e80c3c9/specs/kotor_mdl.html
 doc: |
-  **DDS** in KotOR: either standard **DirectX** `DDS ` + 124-byte `DDS_HEADER`, or a **BioWare headerless** prefix
+  **DDS** in KotOR: either standard **DirectX** `DDS ` + 124 (0x7c)-byte `DDS_HEADER`, or a **BioWare headerless** prefix
   (`width`, `height`, `bytes_per_pixel`, `data_size`) before DXT/RGBA bytes. DXT mips / cube faces follow usual DDS rules.
 
   BioWare BPP enum: `bioware_dds_variant_bytes_per_pixel` in `bioware_common.ksy`.
@@ -105,7 +105,7 @@ seq:
   - id: header
     type: dds_header
     if: magic == "DDS "
-    doc: Standard DDS header (124 bytes) - only present if magic is "DDS "
+    doc: Standard DDS header (124 (0x7c) bytes) - only present if magic is "DDS "
   
   - id: bioware_header
     type: bioware_dds_header

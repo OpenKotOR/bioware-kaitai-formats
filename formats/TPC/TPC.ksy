@@ -38,12 +38,12 @@ meta:
     xoreos_docs_bioware_specs_tree: https://github.com/xoreos/xoreos-docs/tree/4e1c197aa09b532ef466ff8ceccfd6221e80c3c9/specs/bioware
     xoreos_docs_kotor_mdl: https://github.com/xoreos/xoreos-docs/blob/4e1c197aa09b532ef466ff8ceccfd6221e80c3c9/specs/kotor_mdl.html
 doc: |
-  **TPC** (KotOR native texture): 128-byte header (`pixel_encoding` etc. via `bioware_common`) + opaque tail
+  **TPC** (KotOR native texture): 128 (0x80)-byte header (`pixel_encoding` etc. via `bioware_common`) + opaque tail
   (mips / cube faces / optional **TXI** suffix). Per-mip byte sizes are format-specific — see PyKotor `io_tpc.py`
   (`meta.xref`).
 
 doc-ref:
-  - "https://github.com/OpenKotOR/bioware-kaitai-formats/blob/f4700f43f20337e01b8ef751a7c7d42e0acfb00a/formats/TPC/DDS.ksy In-tree — `CResTPC::OnResourceServiced` (128-byte header; K1 + TSL **observed behavior** in `DDS.ksy` `meta.xref`)"
+  - "https://github.com/OpenKotOR/bioware-kaitai-formats/blob/f4700f43f20337e01b8ef751a7c7d42e0acfb00a/formats/TPC/DDS.ksy In-tree — `CResTPC::OnResourceServiced` (128 (0x80)-byte header; K1 + TSL **observed behavior** in `DDS.ksy` `meta.xref`)"
   - "https://github.com/OpenKotOR/PyKotor/wiki/Texture-Formats#tpc PyKotor wiki — TPC"
   - "https://github.com/OpenKotOR/PyKotor/blob/e03ea2c077f1be1d6704d228d156748a9cc3d0eb/Libraries/PyKotor/src/pykotor/resource/formats/tpc/io_tpc.py#L93-L303 PyKotor — `TPCBinaryReader` + `load`"
   - "https://github.com/OpenKotOR/PyKotor/blob/e03ea2c077f1be1d6704d228d156748a9cc3d0eb/Libraries/PyKotor/src/pykotor/resource/formats/tpc/tpc_data.py#L74-L120 PyKotor — `TPCTextureFormat` (opening)"
@@ -60,7 +60,7 @@ doc-ref:
 seq:
   - id: header
     type: tpc_header
-    doc: TPC file header (128 bytes total)
+    doc: TPC file header (128 (0x80) bytes total)
 
   - id: body
     size-eos: true
@@ -113,7 +113,7 @@ types:
         repeat: expr
         repeat-expr: 114
         doc: |
-          Reserved/padding bytes (0x72 = 114 bytes).
+          Reserved/padding bytes (0x72 = 114 (0x72) bytes).
           KotOR stores platform hints here but all implementations skip them.
 
     instances:

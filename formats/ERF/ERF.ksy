@@ -15,11 +15,11 @@ meta:
       Maintainer index: docs/XOREOS_FORMAT_COVERAGE.md (xoreos / xoreos-tools / xoreos-docs ↔ this spec; submodule section 0).
     k1_erf_header_alignment: |
       **CERFHeader** in the K1 build is 160 B with the same field order as `erf_header` here
-      (file type, version, language count, localized string size, entry count, three offsets, build year/day, description strref, 116-byte reserved tail).
+      (file type, version, language count, localized string size, entry count, three offsets, build year/day, description strref, 116 (0x74)-byte reserved tail).
     pykotor: https://github.com/OpenKotOR/PyKotor/tree/e03ea2c077f1be1d6704d228d156748a9cc3d0eb/Libraries/PyKotor/src/pykotor/resource/formats/erf/
     github_openkotor_pykotor_io_erf: |
       https://github.com/OpenKotOR/PyKotor — `Libraries/PyKotor/src/pykotor/resource/formats/erf/io_erf.py`:
-      **`_load_erf_from_kaitai`** **22–83**; legacy **`V1.0`** **86–119**; **`ERFBinaryReader.load`** **206–215**; **`ERFBinaryWriter.write`** **247+** (160-byte header block **247–294**, then localized strings, key table, resource table, and payload writes — long method); header size constants **234–236**.
+      **`_load_erf_from_kaitai`** **22–83**; legacy **`V1.0`** **86–119**; **`ERFBinaryReader.load`** **206–215**; **`ERFBinaryWriter.write`** **247+** (160 (0xa0)-byte header block **247–294**, then localized strings, key table, resource table, and payload writes — long method); header size constants **234–236**.
     github_openkotor_pykotor_erf_data: |
       https://github.com/OpenKotOR/PyKotor — `Libraries/PyKotor/src/pykotor/resource/formats/erf/erf_data.py`:
       **`ERFType`** (`ERF` / `MOD` / `SAV` / `HAK`) **91–107**; header field overview **14–22**; **`class ERF`** **123+**.
@@ -56,16 +56,16 @@ doc: |
   Archive `resource_type` values use the shared **`bioware_type_ids::xoreos_file_type_id`** enum (xoreos `FileType`); see `formats/Common/bioware_type_ids.ksy`.
 
   Binary Format Structure:
-  - Header (160 bytes): File type, version, entry counts, offsets, build date, description
+  - Header (160 (0xa0) bytes): File type, version, entry counts, offsets, build date, description
   - Localized String List (optional, variable size): Multi-language descriptions. MOD files may
     include localized module names for the load screen. Each entry contains language_id (u4),
     string_size (u4), and string_data (UTF-8 encoded text)
-  - Key List (24 bytes per entry): ResRef to resource index mapping. Each entry contains:
-    - resref (16 bytes, ASCII, null-padded): Resource filename
+  - Key List (24 (0x18) bytes per entry): ResRef to resource index mapping. Each entry contains:
+    - resref (16 (0x10) bytes, ASCII, null-padded): Resource filename
     - resource_id (u4): Index into resource_list
     - resource_type (u2): Resource type identifier (`bioware_type_ids::xoreos_file_type_id`, xoreos `FileType`)
     - unused (u2): Padding/unused field (typically 0)
-  - Resource List (8 bytes per entry): Resource offset and size. Each entry contains:
+  - Resource List (8 (0x8) bytes per entry): Resource offset and size. Each entry contains:
     - offset_to_data (u4): Byte offset to resource data from beginning of file
     - len_data (u4): Uncompressed size of resource data in bytes (Kaitai id for byte size of `data`)
   - Resource Data (variable size): Raw binary data for each resource, stored at offsets specified
@@ -98,7 +98,7 @@ doc-ref:
 seq:
   - id: header
     type: erf_header
-    doc: ERF file header (160 bytes)
+    doc: ERF file header (160 (0xa0) bytes)
 
 instances:
   localized_string_list:
@@ -211,11 +211,11 @@ types:
         size: 116
         doc: |
           Reserved padding (usually zeros).
-          Total header size is 160 bytes:
+          Total header size is 160 (0xa0) bytes:
           file_type (4) + file_version (4) + language_count (4) + localized_string_size (4) +
           entry_count (4) + offset_to_localized_string_list (4) + offset_to_key_list (4) +
           offset_to_resource_list (4) + build_year (4) + build_day (4) + description_strref (4) +
-          reserved (116) = 160 bytes
+          reserved (116) = 160 (0xa0) bytes
 
     instances:
       is_save_file:
@@ -271,7 +271,7 @@ types:
         encoding: ASCII
         size: 16
         doc: |
-          Resource filename (ResRef), null-padded to 16 bytes.
+          Resource filename (ResRef), null-padded to 16 (0x10) bytes.
           Maximum 16 characters. If exactly 16 characters, no null terminator exists.
           Resource names can be mixed case, though most are lowercase in practice.
 

@@ -471,7 +471,7 @@ namespace Mdl {
          * - 128: Alpha (transparency/opacity, 1 float)
          * 
          * Reference: https://github.com/OpenKotOR/PyKotor/wiki/MDL-MDX-File-Format - Additional Controller Types section
-         * Reference: https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407 — Controller type definitions
+         * Reference: https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407 — Controller type definitions
          * Reference: https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/binmdl.html - Comprehensive controller list
          */
         public function type() { return $this->_m_type; }

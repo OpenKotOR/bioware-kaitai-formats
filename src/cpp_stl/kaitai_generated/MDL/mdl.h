@@ -41,8 +41,8 @@ class mdl_t;
  * \sa https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/binmdl.html xoreos-docs — Torlack binmdl (controller / Aurora background)
  * \sa https://github.com/modawan/reone/blob/master/src/libs/graphics/format/mdlmdxreader.cpp#L55-L118 reone — MdlMdxReader::load
  * \sa https://github.com/KobaltBlu/KotOR.js/blob/master/src/odyssey/OdysseyModel.ts#L56-L170 KotOR.js — OdysseyModel binary constructor
- * \sa https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407 Community MDLOps — controller name table
- * \sa https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L3916-L4698 Community MDLOps — `readasciimdl` (ASCII MDL ingest)
+ * \sa https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407 Community MDLOps — controller name table
+ * \sa https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L3916-L4698 Community MDLOps — `readasciimdl` (ASCII MDL ingest)
  */
 
 class mdl_t : public kaitai::kstruct {
@@ -435,7 +435,7 @@ public:
          * - 128: Alpha (transparency/opacity, 1 float)
          * 
          * Reference: https://github.com/OpenKotOR/PyKotor/wiki/MDL-MDX-File-Format - Additional Controller Types section
-         * Reference: https://github.com/th3w1zard1/mdlops/blob/master/MDLOpsM.pm#L342-L407 — Controller type definitions
+         * Reference: https://github.com/OpenKotOR/MDLOps/blob/master/MDLOpsM.pm#L342-L407 — Controller type definitions
          * Reference: https://github.com/xoreos/xoreos-docs/blob/master/specs/torlack/binmdl.html - Comprehensive controller list
          */
         bioware_mdl_common_t::controller_type_t type() const { return m_type; }
