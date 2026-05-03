@@ -43,9 +43,37 @@ import argparse
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+
+
+def _urlopen_with_retries(
+    req: urllib.request.Request | str,
+    timeout: float,
+    *,
+    max_attempts: int = 4,
+) -> object:
+    """``urlopen`` with bounded retries for transient CDN/GitHub failures (timeouts, 429, 5xx)."""
+    for attempt in range(max_attempts):
+        try:
+            return urllib.request.urlopen(req, timeout=timeout)  # noqa: S310
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 500, 502, 503, 504) or attempt >= max_attempts - 1:
+                raise
+            wait = min(8.0, 0.5 * (2**attempt))
+            ra = e.headers.get("Retry-After") if e.headers else None
+            if ra:
+                try:
+                    wait = max(wait, float(ra))
+                except ValueError:
+                    pass
+            time.sleep(wait)
+        except OSError:
+            if attempt >= max_attempts - 1:
+                raise
+            time.sleep(min(8.0, 0.5 * (2**attempt)))
 
 
 # Require a hostname (avoids matching bare `` `https://` `` in prose).
@@ -147,7 +175,7 @@ def check_github_blob_line_ranges(
         key = (org, repo, sha, file_path)
         if key not in cache:
             url = f"https://raw.githubusercontent.com/{org}/{repo}/{sha}/{file_path}"
-            with urllib.request.urlopen(url, timeout=timeout) as resp:  # noqa: S310
+            with _urlopen_with_retries(url, timeout) as resp:
                 cache[key] = resp.read().decode("utf-8", errors="replace").splitlines()
         return cache[key]
 
@@ -203,7 +231,7 @@ def check_xoreos_master_blob_line_ranges(
         key = (org_repo, file_path)
         if key not in cache:
             url = f"https://raw.githubusercontent.com/{org_repo}/master/{file_path}"
-            with urllib.request.urlopen(url, timeout=timeout) as resp:  # noqa: S310
+            with _urlopen_with_retries(url, timeout) as resp:
                 cache[key] = resp.read().decode("utf-8", errors="replace").splitlines()
         return cache[key]
 
@@ -287,7 +315,7 @@ def check_openkotor_wiki_titles(
                 method="GET",
                 headers={"User-Agent": user_agent, "Accept": "text/html,*/*;q=0.8"},
             )
-            with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
+            with _urlopen_with_retries(req, timeout) as resp:
                 chunk = resp.read(96_000).decode("utf-8", errors="replace")
         except OSError as e:
             issues.append(f"{url} ... fetch failed: {e!r}")
@@ -399,7 +427,7 @@ def head_ok(url: str, timeout: float, user_agent: str) -> tuple[bool, str]:
         headers={"User-Agent": user_agent},
     )
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
+        with _urlopen_with_retries(req, timeout) as resp:
             code = resp.getcode()
             if 200 <= code < 400:
                 return True, str(code)
@@ -412,7 +440,7 @@ def head_ok(url: str, timeout: float, user_agent: str) -> tuple[bool, str]:
                     method="GET",
                     headers={"User-Agent": user_agent, "Range": "bytes=0-0"},
                 )
-                with urllib.request.urlopen(greq, timeout=timeout) as resp:  # noqa: S310
+                with _urlopen_with_retries(greq, timeout) as resp:
                     return True, f"GET fallback {resp.getcode()}"
             except OSError as e2:
                 return False, repr(e2)
